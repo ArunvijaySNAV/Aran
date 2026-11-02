@@ -4,12 +4,12 @@
   "n": 120,
   "client_ms": {
     "p50": 7.1,
-    "p95": 8.5,
+    "p95": 7.9,
     "mean": 7.1
   },
   "core_ms": {
     "p50": 1.0,
-    "p95": 1.1
+    "p95": 1.2
   },
   "fields_protected": {
     "of": 5,
@@ -17,6 +17,6 @@
     "mean": 4.95,
     "requests_with_all_5": 114
   },
-  "measured_at": "2026-11-03 00:56:19",
+  "measured_at": "2026-11-03 00:56:42",
   "path": "client -> cloud(8100) -> core(8000), localhost, sequential"
 }
