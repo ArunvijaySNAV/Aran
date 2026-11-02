@@ -15,8 +15,10 @@ import os
 import re
 import secrets
 import sqlite3
+import sys
 import threading
 import time
+import random  # noqa: F401
 from typing import Any, Dict, List, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
@@ -26,6 +28,9 @@ from fastapi.staticfiles import StaticFiles
 import numpy as np
 from pydantic import BaseModel
 import requests
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "research")))
+import synth  # noqa: E402  (checksum-valid sample identifiers that belong to no one)
 
 # ---------------------------------------------------------------- configuration
 PORT = int(os.environ.get("PORT", 8100))
@@ -49,6 +54,11 @@ ARAN_CORS_ORIGINS = [o.strip() for o in os.environ.get("ARAN_CORS_ORIGINS", "").
 _key_request_timestamps = defaultdict(deque)  # key_hash -> deque of timestamps
 _signup_ip_timestamps = defaultdict(deque)    # ip -> deque of timestamps
 _rate_limit_lock = threading.Lock()
+_public_demo_ts = defaultdict(deque)          # ip -> timestamps (public demo limiter)
+PUBLIC_DEMO_PER_MIN = int(os.environ.get("ARAN_PUBLIC_DEMO_PER_MIN", "12"))
+PUBLIC_DEMO_TENANT = "t_public_demo"
+_SAMPLES = defaultdict(lambda: deque(maxlen=5))   # (tenant_id, sink) -> redacted outputs, memory only
+_samples_lock = threading.Lock()
 
 
 def is_demo_exempt(ip: str) -> bool:
@@ -772,6 +782,12 @@ def protect(body: ProtectIn, tenant: dict = Depends(require_scope("protect"))):
         )
     conn.close()
 
+    # Redacted sample for the Data flows tab: memory only, and only when nothing was left raw.
+    if unprot_count == 0:
+        with _samples_lock:
+            _SAMPLES[(tenant_id, body.sink or "kyc-archive")].appendleft(
+                {"at": now_ts, "redacted": str(core_res.get("after", ""))[:400], "protected": prot_count})
+
     core_res["findings"] = clean_findings
     core_res["notes"] = clean_notes
     return core_res
@@ -1061,8 +1077,39 @@ def get_dashboard(tenant: dict = Depends(require_scope("dashboard"))):
             "raw_receipt": r_json,
         })
 
+    now = time.time()
+    since = now - 24 * 3600
+    conn = get_db()
+    hourly_rows = conn.execute(
+        """
+        SELECT CAST(at / 3600 AS INTEGER) AS h, count(*) AS n,
+               COALESCE(SUM(protected_count),0) AS p, COALESCE(SUM(unprotected_count),0) AS u,
+               COALESCE(SUM(ignored_count),0) AS i
+        FROM usage_events WHERE tenant_id = ? AND at >= ? GROUP BY h
+        """, (tenant_id, since)).fetchall()
+    sink_rows = conn.execute(
+        """
+        SELECT sink, count(*) AS n, COALESCE(SUM(protected_count),0) AS p,
+               COALESCE(SUM(unprotected_count),0) AS u, MAX(at) AS last_at
+        FROM usage_events WHERE tenant_id = ? AND sink IS NOT NULL AND endpoint IN ('/v1/protect','/v1/gateway','/v1/playground')
+        GROUP BY sink ORDER BY last_at DESC
+        """, (tenant_id,)).fetchall()
+    conn.close()
+    by_hour = {r["h"]: r for r in hourly_rows}
+    cur_h = int(now // 3600)
+    hourly = []
+    for h in range(cur_h - 23, cur_h + 1):
+        r = by_hour.get(h)
+        hourly.append({"hour_start": h * 3600, "requests": r["n"] if r else 0, "protected": r["p"] if r else 0,
+                       "unprotected": r["u"] if r else 0, "ignored": r["i"] if r else 0})
+    sinks = [{"sink": r["sink"], "events": r["n"], "protected": r["p"], "unprotected": r["u"], "last_at": r["last_at"]}
+             for r in sink_rows]
+    tenant_public = {k: v for k, v in tenant.items() if k not in ("key_hash", "email")}
+
     return {
-        "tenant": tenant,
+        "tenant": tenant_public,
+        "hourly": hourly,
+        "sinks": sinks,
         "isolation": "Each workspace has its own engine, vault, token index, Merkle log and signing keys.",
         "metrics": {
             "identifiers_protected": total_protected,
@@ -1231,7 +1278,99 @@ def reset_limiters(request: Request):
     with _rate_limit_lock:
         _key_request_timestamps.clear()
         _signup_ip_timestamps.clear()
+        _public_demo_ts.clear()
     return {"status": "ok", "cleared": True}
+
+
+# ---------------------------------------------------------------- public demo, playground, samples
+def _sample_record(r: "random.Random"):
+    """A KYC line made only of generated, checksum-valid identifiers that belong to no one."""
+    digits = lambda x: re.sub(r"\D", "", x)
+    rec = {
+        "name": synth.gen_name(r, "test"),
+        "aadhaar": digits(synth.gen_aadhaar(r)),
+        "mobile": digits(synth.gen_mobile(r))[-10:],
+        "card": digits(synth.gen_card(r)),
+        "pan": synth.gen_pan(r),
+    }
+    rec["text"] = (f"Customer {rec['name']} KYC: Aadhaar {rec['aadhaar']}, mobile {rec['mobile']}, "
+                   f"card {rec['card']}, PAN {rec['pan']}")
+    return rec
+
+
+def _public_demo_limit(request: Request):
+    ip = client_ip(request)
+    now = time.time()
+    with _rate_limit_lock:
+        q = _public_demo_ts[ip]
+        while q and q[0] <= now - 60:
+            q.popleft()
+        if len(q) >= PUBLIC_DEMO_PER_MIN:
+            raise HTTPException(429, f"Demo limit reached: {PUBLIC_DEMO_PER_MIN} per minute.",
+                                headers={"Retry-After": str(max(1, int(60 - (now - q[0])) + 1))})
+        q.append(now)
+
+
+@app.get("/v1/public/demo")
+def public_demo(request: Request):
+    """Landing-page demo: a real protect call on a freshly generated SAMPLE record. It accepts no input
+    text, so it can never be used to push real data through. Runs in its own demo workspace."""
+    _public_demo_limit(request)
+    import random
+    rec = _sample_record(random.Random(secrets.randbits(64)))
+    core_res, _ = call_core("POST", "/api/process", {
+        "text": rec["text"], "source": "public-demo", "sink": "kyc-archive",
+        "customer_ref": f"DEMO-{secrets.randbelow(50):03d}", "purpose": "KYC"}, tenant_id=PUBLIC_DEMO_TENANT)
+    return {
+        "sample": True,
+        "before": rec["text"],
+        "after": core_res.get("after", ""),
+        "findings": [{"type": f["type"], "protected": bool(f.get("protected")), "token": f.get("token")}
+                     for f in core_res.get("findings", [])],
+        "latency_ms": core_res.get("latency_ms"),
+    }
+
+
+class PlaygroundIn(BaseModel):
+    text: str
+
+
+@app.post("/v1/playground")
+def playground(body: PlaygroundIn, tenant: dict = Depends(require_scope("dashboard"))):
+    """Console playground: protect pasted text WITHOUT enrolling a customer (vaultless tokens, nothing
+    reversible is stored). Recorded in usage under the sink 'playground'."""
+    if len(body.text) > 4000:
+        raise HTTPException(422, "Playground text is limited to 4000 characters.")
+    tenant_id = tenant["id"]
+    core_res, latency_ms = call_core("POST", "/api/process", {
+        "text": body.text, "source": "playground", "sink": "playground", "purpose": "Service"}, tenant_id=tenant_id)
+    findings = core_res.get("findings", [])
+    prot = sum(1 for f in findings if f.get("protected"))
+    unprot = len(findings) - prot
+    by_type = {}
+    for f in findings:
+        if f.get("protected"):
+            by_type[f["type"]] = by_type.get(f["type"], 0) + 1
+    conn = get_db()
+    with conn:
+        conn.execute(
+            """INSERT INTO usage_events (tenant_id, at, endpoint, sink, purpose, protected_count, unprotected_count,
+               ignored_count, by_type, latency_ms, customer_ref, status)
+               VALUES (?, ?, '/v1/playground', 'playground', 'Service', ?, ?, 0, ?, ?, NULL, 'ok')""",
+            (tenant_id, time.time(), prot, unprot, json.dumps(by_type), core_res.get("latency_ms", latency_ms)))
+    conn.close()
+    return {"after": core_res.get("after", ""), "latency_ms": core_res.get("latency_ms"),
+            "notes": core_res.get("notes", []),
+            "findings": [{"type": f["type"], "start": f["start"], "end": f["end"], "p": f["p"],
+                          "protected": bool(f.get("protected")), "token": f.get("token")} for f in findings]}
+
+
+@app.get("/v1/samples")
+def samples(sink: str, tenant: dict = Depends(require_scope("dashboard"))):
+    """The last few redacted outputs sent to a sink (kept in memory only; never contains raw values)."""
+    with _samples_lock:
+        rows = list(_SAMPLES.get((tenant["id"], sink), []))
+    return {"sink": sink, "samples": rows, "note": "Redacted outputs only, held in memory (lost on restart)."}
 
 
 @app.get("/v1/health")
@@ -1342,28 +1481,22 @@ def serve_connect():
 
 @app.get("/dashboard")
 def serve_dashboard():
-    # Route directly to the new modular app overview
-    overview_path = os.path.join(STATIC_DIR, "app", "overview.html")
-    if os.path.exists(overview_path):
-        return FileResponse(overview_path)
     return FileResponse(os.path.join(STATIC_DIR, "dashboard.html"))
+
+
+_APP_TABS = {"overview": "overview", "traffic": "flows", "integrations": "keys", "receipts": "receipts",
+             "trace": "trace", "audit": "audit", "usage": "overview"}
 
 
 @app.get("/app/{page}")
 def serve_app_page(page: str):
-    if not page.endswith(".html"):
-        page_html = f"{page}.html"
-    else:
-        page_html = page
-    file_path = os.path.join(STATIC_DIR, "app", page_html)
-    if os.path.exists(file_path):
-        return FileResponse(file_path)
-    return RedirectResponse(url="/app/overview")
+    tab = _APP_TABS.get(page.removesuffix(".html"), "overview")
+    return RedirectResponse(url=f"/dashboard#{tab}")
 
 
 @app.get("/app")
 def serve_app_root():
-    return RedirectResponse(url="/app/overview")
+    return RedirectResponse(url="/dashboard#overview")
 
 
 @app.get("/styleguide")

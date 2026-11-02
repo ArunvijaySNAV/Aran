@@ -1,244 +1,93 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Quick Connect - Aran Cloud (preview)</title>
-  <link rel="stylesheet" href="/static/css/cloud.css">
-  <link rel="stylesheet" href="/static/css/system.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connect your app: Aran Cloud</title>
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/css/console.css">
 </head>
 <body>
-  <nav>
-    <a href="/" class="brand-logo">
-      <span>⚡</span> ARAN CLOUD
-    </a>
-    <div class="nav-links">
-      <span class="pill-preview">PREVIEW</span>
-      <a href="/connect" class="nav-link active">Quick Connect</a>
-      <a href="/dashboard" class="nav-link">Dashboard</a>
-    </div>
-  </nav>
-
-  <div class="container">
-    <div class="hero" style="margin-bottom: 2rem;">
-      <h1>Integration <span>Quick Connect</span></h1>
-      <p>Three clean drop-in integration points to completely eliminate raw PII from your architecture.</p>
-    </div>
-
-    <!-- Active Key Bar -->
-    <div class="card" style="padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <span style="color: var(--text-muted); font-size: 0.9rem;">Active Workspace API Key:</span>
-        <span class="mono" id="active-key-text" style="color: var(--accent-bright); margin-left: 0.5rem;">loading...</span>
-      </div>
-      <button class="btn btn-secondary btn-sm" id="btn-change-key">Change Key</button>
-    </div>
-
-    <!-- 3 Tabs Card -->
-    <div class="card">
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="tab-writes">Protect Writes (Database)</button>
-        <button class="tab-btn" data-tab="tab-logs">Protect Logs (Observability)</button>
-        <button class="tab-btn" data-tab="tab-ai">Protect AI Prompts (LLM Gateway)</button>
-      </div>
-
-      <!-- Tab 1: Writes -->
-      <div id="tab-writes" class="tab-content">
-        <p style="color: var(--text-muted); margin-bottom: 1rem;">
-          Intercept incoming payload before SQL INSERT. Replaces Aadhaar, PAN, Cards and Phone numbers with vault tokens.
-        </p>
-        <pre><code id="snippet-writes">curl -X POST http://127.0.0.1:8100/v1/protect \
-  -H "X-API-Key: YOUR_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "Customer Priya Patel with Aadhaar 895760490870 and Card 4532015112830366",
-    "customer_ref": "CUST-1001",
-    "purpose": "KYC",
-    "sink": "kyc-archive"
-  }'</code></pre>
-      </div>
-
-      <!-- Tab 2: Logs -->
-      <div id="tab-logs" class="tab-content" style="display: none;">
-        <p style="color: var(--text-muted); margin-bottom: 1rem;">
-          Sanitize application logs and telemetry before shipping to Datadog, CloudWatch, or ELK.
-        </p>
-        <pre><code id="snippet-logs">curl -X POST http://127.0.0.1:8100/v1/protect \
-  -H "X-API-Key: YOUR_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "User payment confirmed for 9876543210 (Card 4532015112830366)",
-    "purpose": "Service",
-    "sink": "log-platform"
-  }'</code></pre>
-      </div>
-
-      <!-- Tab 3: AI Prompts -->
-      <div id="tab-ai" class="tab-content" style="display: none;">
-        <p style="color: var(--text-muted); margin-bottom: 1rem;">
-          Route AI and customer-care chatbot queries through the AI Gateway. External providers see only placeholders.
-        </p>
-        <pre><code id="snippet-ai">curl -X POST http://127.0.0.1:8100/v1/gateway \
-  -H "X-API-Key: YOUR_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "role": "customer-care",
-    "text": "Verify loan application eligibility for customer with Aadhaar 895760490870"
-  }'</code></pre>
-      </div>
-
-      <!-- Live Interactive Test -->
-      <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-card); padding-top: 1.5rem;">
-        <h3 style="font-size: 1.15rem; margin-bottom: 0.75rem;">Interactive Live Test</h3>
-        <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
-          <input type="text" id="live-test-input" value="Customer Sunita Rao with Aadhaar 895760490870 applying for loan with card 4532015112830366" style="flex: 1;">
-          <button class="btn btn-primary" id="btn-run-live">Send live test request &rarr;</button>
-        </div>
-
-        <div id="live-output" style="display: none; background: #070B16; border: 1px solid var(--border-card); border-radius: 8px; padding: 1.25rem;">
-          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;" id="live-output-label">Live Output (Vault Tokens Generated):</div>
-          <div id="live-after-text" style="font-size: 1.05rem; margin-bottom: 0.75rem; color: #FFFFFF;"></div>
-          <div id="live-findings-pills" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
-        </div>
-      </div>
-    </div>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar"><div class="wrap">
+  <a class="brand" href="/"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 4L8 10V22C8 32.5 14.8 42.1 24 44C33.2 42.1 40 32.5 40 22V10L24 4Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M17 34V23C17 19.134 20.134 16 24 16C27.866 16 31 19.134 31 23V34" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="24" r="2" fill="currentColor"/></svg>Aran</a>
+  <nav class="nav" aria-label="Primary"><a href="/dashboard">Dashboard</a><button class="btn sm icon-btn" data-theme-btn aria-label="Toggle dark mode">◐</button></nav>
+</div></header>
+<main id="main" class="wrap section stack" style="max-width:860px">
+  <h1 style="font-size:2rem">Connect your app</h1>
+  <div id="need-key" hidden class="card">
+    <h2 style="font-size:1.2rem">Paste a key to continue</h2>
+    <p class="muted small">Use your admin or app-server key. It stays in this browser tab only.</p>
+    <form id="key-form"><div class="field"><label for="k">API key</label><input id="k" type="password" autocomplete="off" placeholder="aran_live_…"></div><button class="btn primary" type="submit">Use this key</button> <span id="key-err" class="small" role="alert" style="color:var(--bad)"></span></form>
+    <p class="small muted" style="margin-top:12px">No workspace yet? <a href="/signup">Create one</a>.</p>
   </div>
-
-  <footer>
-    Aran Cloud (preview): separate keys, namespaces, metering and dashboards. Per-tenant engines and persistent vault storage are the next milestone.
-  </footer>
-
-  <script>
-    let activeKey = '';
-    try {
-      if (window.location.hash && window.location.hash.includes('key=')) {
-        const hashStr = window.location.hash.replace(/^#/, '');
-        const params = new URLSearchParams(hashStr);
-        const k = params.get('key');
-        if (k) {
-          activeKey = k.trim();
-          sessionStorage.setItem('aran_dashboard_key', activeKey);
-          const cleanUrl = window.location.pathname + (window.location.search || '');
-          window.history.replaceState(null, '', cleanUrl);
-        }
-      }
-      if (!activeKey) {
-        activeKey = sessionStorage.getItem('aran_dashboard_key') || 'aran_live_demo1234567890abcdef12345678';
-      }
-    } catch (e) {
-      console.warn('sessionStorage error', e);
-      activeKey = 'aran_live_demo1234567890abcdef12345678';
-    }
-    
-    function updateKeyDisplays() {
-      document.getElementById('active-key-text').innerText = activeKey;
-      document.getElementById('snippet-writes').innerText = `curl -X POST http://127.0.0.1:8100/v1/protect \\\n  -H "X-API-Key: ${activeKey}" \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "text": "Customer Priya Patel with Aadhaar 895760490870 and Card 4532015112830366",\n    "customer_ref": "CUST-1001",\n    "purpose": "KYC",\n    "sink": "kyc-archive"\n  }'`;
-      document.getElementById('snippet-logs').innerText = `curl -X POST http://127.0.0.1:8100/v1/protect \\\n  -H "X-API-Key: ${activeKey}" \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "text": "User payment confirmed for 9876543210 (Card 4532015112830366)",\n    "purpose": "Service",\n    "sink": "log-platform"\n  }'`;
-      document.getElementById('snippet-ai').innerText = `curl -X POST http://127.0.0.1:8100/v1/gateway \\\n  -H "X-API-Key: ${activeKey}" \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "role": "customer-care",\n    "text": "Verify loan application eligibility for customer with Aadhaar 895760490870"\n  }'`;
-    }
-
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.tab).style.display = 'block';
+  <div id="flow" hidden class="stack">
+    <section class="card" aria-labelledby="s1"><h2 id="s1" style="font-size:1.2rem">1. Put the key on your server</h2>
+      <p class="muted small">Store it as <code>ARAN_APP_KEY</code> in your server environment. Never in browser code, never in <code>NEXT_PUBLIC_*</code>. Your base URL:</p>
+      <div class="keybox"><code id="base"></code><button class="btn sm" data-copy="base" type="button">Copy</button></div>
+    </section>
+    <section class="card" aria-labelledby="s2"><h2 id="s2" style="font-size:1.2rem">2. Add five lines</h2>
+      <div class="tabs" role="tablist" aria-label="Language" id="lang-tabs"></div>
+      <div class="codebox" style="margin-top:12px"><pre id="snippet" tabindex="0"></pre><button class="btn sm" data-copy="snippet" type="button">Copy</button></div>
+      <p class="small muted" style="margin-bottom:0">Fail closed: if the call throws or returns an error, store nothing and return an error to your user.</p>
+    </section>
+    <section class="card" aria-labelledby="s3"><h2 id="s3" style="font-size:1.2rem">3. See the first event arrive</h2>
+      <div class="row"><button class="btn primary" id="test" type="button">Send a test event</button><span class="small muted">Sends one generated sample record with your key.</span></div>
+      <div id="test-out" class="stack" style="margin-top:12px" aria-live="polite"></div>
+      <div id="status" class="banner" style="margin-top:16px" role="status"><span class="dot" aria-hidden="true" style="margin-top:7px"></span><span id="status-text">Waiting for the first event…</span></div>
+      <p class="small muted" style="margin-bottom:0"><a href="/dashboard#overview">Open the dashboard</a> to see everything counted.</p>
+    </section>
+  </div>
+</main>
+<script src="/static/js/console.js"></script>
+<script>
+(function () {
+  var langs = [['ts', 'TypeScript / Next.js'], ['py', 'Python'], ['curl', 'curl']], cur = 'ts', timer = null;
+  var base = location.origin, sn = A.snippets(base);
+  function show() {
+    if (!A.getKey()) { A.$('#need-key').hidden = false; A.$('#flow').hidden = true; return; }
+    A.$('#need-key').hidden = true; A.$('#flow').hidden = false;
+    A.$('#base').textContent = base;
+    var tabs = A.$('#lang-tabs'); tabs.replaceChildren();
+    langs.forEach(function (l) {
+      tabs.appendChild(A.h('button', { role: 'tab', 'aria-selected': l[0] === cur, id: 'tab-' + l[0], onclick: function () { cur = l[0]; render(); } }, l[1]));
+    });
+    render(); poll(); timer = setInterval(poll, 3000);
+  }
+  function render() {
+    A.$$('[role=tab]').forEach(function (t) { t.setAttribute('aria-selected', t.id === 'tab-' + cur); });
+    A.$('#snippet').textContent = sn[cur];
+  }
+  function setStatus(kind, text) {
+    var s = A.$('#status'); s.className = 'banner ' + kind; A.$('#status-text').textContent = text;
+    A.$('.dot', s).className = 'dot ' + (kind === 'ok' ? 'ok' : '');
+  }
+  function poll() {
+    A.api('/v1/dashboard').then(function (d) {
+      var ev = (d.recent_activity || []).filter(function (e) { return e.endpoint === '/v1/protect'; });
+      if (!ev.length) { setStatus('', 'Waiting for the first event…'); return; }
+      var real = ev.filter(function (e) { return e.sink !== 'connect-test'; });
+      if (real.length) setStatus('ok', 'Connected: your app sent an event to sink "' + real[0].sink + '" (' + real[0].protected_count + ' values protected).');
+      else setStatus('ok', 'Aran received your test event (' + ev[0].protected_count + ' values protected). Now send one from your app.');
+    }).catch(function (e) { if (e.status === 401) { clearInterval(timer); A.clearKey(); show(); } else setStatus('bad', e.message); });
+  }
+  A.$('#test').addEventListener('click', function () {
+    var b = this, out = A.$('#test-out'); b.disabled = true; b.textContent = 'Sending…'; out.replaceChildren();
+    A.api('/v1/public/demo', { key: '' }).then(function (s) {
+      return A.api('/v1/protect', { body: { text: s.before, customer_ref: 'CONNECT-TEST', purpose: 'KYC', sink: 'connect-test' } }).then(function (r) {
+        out.replaceChildren(A.h('div', { class: 'demo' }, A.h('div', {}, A.h('div', { class: 'lbl' }, 'Sent'), A.h('pre', { text: s.before })), A.h('div', {}, A.h('div', { class: 'lbl' }, 'Stored'), A.h('pre', { text: r.after }))));
+        poll();
       });
-    });
-
-    document.getElementById('btn-change-key').addEventListener('click', () => {
-      const k = prompt('Enter your Aran Cloud API key:', activeKey);
-      if (k) {
-        activeKey = k.trim();
-        try {
-          sessionStorage.setItem('aran_dashboard_key', activeKey);
-        } catch (e) {}
-        updateKeyDisplays();
-      }
-    });
-
-    document.getElementById('btn-run-live').addEventListener('click', async () => {
-      const text = document.getElementById('live-test-input').value.trim();
-      let keyToUse = activeKey;
-      let res = await fetch('/v1/protect', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': keyToUse
-        },
-        body: JSON.stringify({
-          text,
-          customer_ref: 'CUST-DEMO-LIVE',
-          purpose: 'KYC',
-          sink: 'kyc-archive'
-        })
-      });
-
-      // If active key is dashboard-only, request protect/admin key
-      if (res.status === 403) {
-        let adminK = '';
-        try { adminK = sessionStorage.getItem('aran_admin_key'); } catch(e){}
-        if (!adminK) {
-          adminK = prompt("Your active key has 'dashboard' scope only. Please enter a key with 'protect' or 'admin' scope to run live tests:");
-          if (adminK) {
-            try { sessionStorage.setItem('aran_admin_key', adminK.trim()); } catch(e){}
-          }
-        }
-        if (adminK) {
-          keyToUse = adminK.trim();
-          res = await fetch('/v1/protect', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-API-Key': keyToUse
-            },
-            body: JSON.stringify({
-              text,
-              customer_ref: 'CUST-DEMO-LIVE',
-              purpose: 'KYC',
-              sink: 'kyc-archive'
-            })
-          });
-        }
-      }
-
-      const data = await res.json();
-      if (!res.ok) {
-        alert('Error ' + res.status + ': ' + (data.detail || 'Request failed'));
-        return;
-      }
-
-      document.getElementById('live-output').style.display = 'block';
-      document.getElementById('live-output-label').innerText = 'Live Response (Live Test Request Executed):';
-      let after = data.after || '';
-      // Highlight tokens in green
-      after = after.replace(/<[A-Za-z0-9_:\-]+>|\b\d{12,16}\b/g, m => `<span class="pill-token">${m}</span>`);
-      document.getElementById('live-after-text').innerHTML = after;
-
-      const pills = (data.findings || []).map(f => `
-        <span class="pill-token">${f.type}: ${f.token || 'protected'} (latency: ${data.latency_ms || 1.2}ms)</span>
-      `).join('');
-      document.getElementById('live-findings-pills').innerHTML = pills;
-    });
-      const data = await res.json();
-      if (!res.ok) {
-        alert('Error ' + res.status + ': ' + (data.detail || 'Request failed'));
-        return;
-      }
-
-      document.getElementById('live-output').style.display = 'block';
-      let after = data.after || '';
-      // Highlight tokens in green
-      after = after.replace(/<[A-Za-z0-9_:\-]+>|\b\d{12,16}\b/g, m => `<span class="pill-token">${m}</span>`);
-      document.getElementById('live-after-text').innerHTML = after;
-
-      const pills = (data.findings || []).map(f => `
-        <span class="pill-token">${f.type}: ${f.token || 'protected'} (latency: ${data.latency_ms || 1.2}ms)</span>
-      `).join('');
-      document.getElementById('live-findings-pills').innerHTML = pills;
-    });
-
-    window.addEventListener('DOMContentLoaded', updateKeyDisplays);
-  </script>
+    }).catch(function (e) {
+      out.replaceChildren(A.h('div', { class: 'banner bad', role: 'alert' }, e.status === 403 ? 'This key cannot protect data. Use your admin or app-server key.' : e.message));
+    }).then(function () { b.disabled = false; b.textContent = 'Send a test event'; });
+  });
+  A.$('#key-form').addEventListener('submit', function (e) {
+    e.preventDefault(); var k = A.$('#k').value.trim();
+    A.api('/v1/dashboard', { key: k }).then(function () { A.setKey(k); show(); }, function () { A.$('#key-err').textContent = 'That key was not accepted.'; });
+  });
+  show();
+})();
+</script>
 </body>
 </html>
-
