@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <!-- Outer Fortress Shield -->
+  <path d="M24 4L8 10V22C8 32.5 14.8 42.1 24 44C33.2 42.1 40 32.5 40 22V10L24 4Z" 
+        stroke="#818CF8" 
+        stroke-width="2.5" 
+        stroke-linejoin="round" 
+        fill="#0D111F" />
+  <!-- Inner Fort Arch Gate (Stroke in #A5B4FC) -->
+  <path d="M17 34V23C17 19.134 20.134 16 24 16C27.866 16 31 19.134 31 23V34" 
+        stroke="#A5B4FC" 
+        stroke-width="2.5" 
+        stroke-linecap="round" />
+  <!-- Center Keystone -->
+  <circle cx="24" cy="24" r="2" fill="#A5B4FC" />
+  <!-- Base Horizon Line -->
+  <line x1="14" y1="34" x2="34" y2="34" stroke="#A5B4FC" stroke-width="2" stroke-linecap="round" />
+</svg>
+

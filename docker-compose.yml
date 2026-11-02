@@ -1,0 +1,103 @@
+services:
+  core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python3 -m uvicorn app.server.main:app --host 0.0.0.0 --port 8000 --workers 1
+    env_file:
+      - .env.local
+    environment:
+      - ARAN_STORE=/srv/data/aran.db
+      - ARAN_PORT=8000
+    volumes:
+      - aran-data:/srv/data
+    networks:
+      - aran-net
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  cloud:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python3 -m uvicorn aran_cloud.main:app --host 0.0.0.0 --port 8100
+    env_file:
+      - .env.local
+    environment:
+      - ARAN_CORE_URL=http://core:8000
+      - ARAN_DEMO_MODE=1
+      - PORT=8100
+    ports:
+      - "8100:8100"
+    volumes:
+      - cloud-data:/srv/aran_cloud
+    networks:
+      - aran-net
+    depends_on:
+      core:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8100/v1/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  bank-a:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python3 -m uvicorn demo_bank.app:app --host 0.0.0.0 --port 9001
+    environment:
+      - BANK_MODE=legacy
+      - PORT=9001
+    ports:
+      - "9001:9001"
+    networks:
+      - aran-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9001/api/config || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  bank-b:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python3 -m uvicorn demo_bank.app:app --host 0.0.0.0 --port 9002
+    env_file:
+      - .env.local
+    environment:
+      - BANK_MODE=aran
+      - PORT=9002
+      - ARAN_URL=http://cloud:8100
+    ports:
+      - "9002:9002"
+    networks:
+      - aran-net
+    depends_on:
+      cloud:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9002/api/config || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+networks:
+  aran-net:
+    driver: bridge
+
+volumes:
+  aran-data:
+  cloud-data:
+

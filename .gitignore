@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+*.db
+*.db-wal
+*.db-shm
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+.next/
+dist/
+data/
+.DS_Store
+test-results/
+playwright-report/
+*.tsbuildinfo

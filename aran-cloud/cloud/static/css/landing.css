@@ -1,0 +1,711 @@
+/* ==========================================================================
+   ARAN CLOUD LANDING CSS (css/landing.css)
+   Page-level layout for landing and signup pages.
+   Strict rules: Flat cards, 8px grid, >= 96px vertical padding.
+   ========================================================================== */
+
+/* Skip Link for Accessibility */
+.skip-link {
+  position: absolute;
+  top: -48px;
+  left: 24px;
+  background-color: var(--accent-primary);
+  color: #FFFFFF;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  z-index: 1000;
+  transition: top 180ms ease;
+}
+.skip-link:focus {
+  top: 16px;
+  outline: 2px solid var(--border-focus);
+}
+
+/* Landing Container */
+.landing-container {
+  max-width: var(--max-content-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 32px;
+  padding-right: 32px;
+  width: 100%;
+}
+
+/* Landing Section Spacing (>= 96px vertical padding on desktop) */
+.landing-section {
+  padding-top: 96px;
+  padding-bottom: 96px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.section-header {
+  margin-bottom: 48px;
+  max-width: 680px;
+}
+
+.section-label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-text);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.25;
+  margin-bottom: 16px;
+}
+
+.section-desc {
+  font-size: 18px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Sticky Top Navigation (Flat, 1px border, no blur) */
+.landing-nav {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background-color: var(--bg-app);
+  border-bottom: 1px solid var(--border-subtle);
+  height: 72px;
+  display: flex;
+  align-items: center;
+}
+
+.landing-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.nav-links-desktop {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav-link {
+  font-size: 15px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+.nav-link:hover, .nav-link:focus-visible {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.nav-cta-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Mobile Nav Toggle */
+.mobile-nav-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.mobile-nav-menu {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 32px;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.mobile-nav-menu.is-open {
+  display: flex;
+}
+
+/* Hero Section (Asymmetric) */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.hero-pill {
+  margin-bottom: 24px;
+}
+
+.hero-headline {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+}
+
+.hero-subhead {
+  font-size: 19px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 36px;
+  max-width: 580px;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.hero-secondary-link {
+  color: var(--accent-text);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+.hero-secondary-link:hover, .hero-secondary-link:focus-visible {
+  text-decoration: underline;
+}
+
+/* Hero Right: Code Block with Floating Offset Stat Cards */
+.hero-preview {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-code-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.hero-code-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-app);
+}
+
+.hero-code-body {
+  padding: 20px 22px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 0;
+  overflow-x: auto;
+}
+
+/* Floating Stat Cards (Offset layering) */
+.hero-stat-floating {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-card);
+  padding: 18px 22px;
+  margin-top: -24px;
+  margin-left: 32px;
+  margin-right: 12px;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-stat-floating-2 {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-card);
+  padding: 18px 22px;
+  margin-top: 12px;
+  margin-left: -16px;
+  margin-right: 48px;
+  position: relative;
+  z-index: 2;
+}
+
+.stat-floating-num {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.stat-floating-label {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.stat-floating-caption {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* 3-Step "How it works" Grid */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.step-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+}
+
+.step-num-badge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-text);
+  margin-bottom: 16px;
+}
+
+.step-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.step-text {
+  font-size: 16px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 24px;
+  flex: 1;
+}
+
+.step-diagram {
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+/* "Three ways to connect" Grid */
+.connect-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.connect-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.connect-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.connect-code {
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  flex: 1;
+}
+
+.connect-benefit {
+  font-size: 14px;
+  color: var(--accent-text);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* "Proof, not promises" Grid */
+.proof-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.proof-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.proof-fact {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.proof-body {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.proof-check {
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.proof-check strong {
+  color: var(--text-primary);
+}
+
+/* Honest Limits Card */
+.limits-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 36px 32px;
+}
+
+.limits-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px 36px;
+  margin-top: 24px;
+}
+
+.limit-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.limit-marker {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-border);
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.limit-text {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.limit-text strong {
+  color: var(--text-primary);
+}
+
+/* Plans Strip */
+.plans-wrapper {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.plan-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Landing Footer */
+.landing-footer {
+  padding-top: 56px;
+  padding-bottom: 56px;
+  background-color: var(--bg-app);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.footer-link {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+.footer-link:hover, .footer-link:focus-visible {
+  color: var(--text-primary);
+}
+
+.footer-disclaimer {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .hero-stat-floating {
+    margin-left: 12px;
+  }
+  .hero-stat-floating-2 {
+    margin-left: 0;
+  }
+  .limits-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .landing-section {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+  .hero-headline {
+    font-size: 34px;
+  }
+  .section-title {
+    font-size: 26px;
+  }
+  .nav-links-desktop {
+    display: none;
+  }
+  .mobile-nav-toggle {
+    display: block;
+  }
+  .steps-grid, .connect-grid, .proof-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   Sign-up Page Specific Styles
+   ========================================================================== */
+.signup-layout {
+  min-height: calc(100vh - 72px - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.signup-card {
+  width: 100%;
+  max-width: 540px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 40px 36px;
+}
+
+.signup-header {
+  margin-bottom: 28px;
+}
+
+.signup-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.signup-desc {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.form-input {
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 15px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color 180ms ease;
+}
+
+.form-input:focus {
+  border-color: var(--border-focus);
+}
+
+.signup-warning {
+  background-color: var(--accent-subtle);
+  border-left: 3px solid var(--accent-primary);
+  padding: 12px 16px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 20px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.key-display-box {
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.key-display-text {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent-text);
+  word-break: break-all;
+  user-select: all;
+}
+
+.signup-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.checklist-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-text);
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.checklist-item strong {
+  color: var(--text-primary);
+}
+
+/* Toast container for non-intrusive notifications */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toast {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+  font-size: 14px;
+  color: var(--text-primary);
+  max-width: 360px;
+}
+
+.toast.toast-error {
+  border-color: var(--exposed-red-border);
+  color: var(--exposed-red-text);
+}
+

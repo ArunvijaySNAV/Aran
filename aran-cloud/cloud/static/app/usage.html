@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usage and Plan - Aran Cloud</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="stylesheet" href="/static/css/system.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside id="shell-sidebar"></aside>
+
+    <div class="app-main">
+      <header id="shell-topbar"></header>
+
+      <main class="app-main-content">
+        <div class="container">
+          <!-- Page Header -->
+          <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3);">
+            <div>
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
+                <h1 class="page-title">Usage and plan</h1>
+                <span class="pill pill-accent">FREE DEVELOPER TIER</span>
+              </div>
+              <p class="page-subtitle" style="color: var(--text-muted); font-size: 14px;">
+                Monthly tenant quota consumption, rate limits, and scoped API key inventory
+              </p>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btn-mint-key-usage">
+              <span>+</span> Mint scoped key
+            </button>
+          </div>
+
+          <!-- Usage Metrics Card -->
+          <div class="card" style="margin-bottom: var(--space-4);">
+            <div class="card-header">
+              <h3 class="card-title">Monthly Interception Quota</h3>
+              <span id="usage-pct-pill" class="pill pill-neutral">0% used</span>
+            </div>
+            <div style="margin-bottom: 8px; display: flex; justify-content: space-between; font-size: 14px;">
+              <span style="color: var(--text-muted);">Consumed this billing period</span>
+              <span class="mono" id="usage-fraction">0 / 10,000 requests</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="usage-bar-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Keys Table -->
+          <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="padding: var(--card-padding) var(--card-padding) var(--space-2); display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h3 class="card-title">Active API Keys</h3>
+                <span style="font-size: 13px; color: var(--text-muted);">Scoped keys provisioned for your workspace</span>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Key Prefix</th>
+                    <th>Label</th>
+                    <th>Scopes</th>
+                    <th>Created</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="keys-table-body">
+                  <tr><td colspan="5" class="table-empty">Loading API keys...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/static/app/shell.js"></script>
+  <script>
+    Shell.init('usage');
+
+    async function loadUsage() {
+      try {
+        const res = await fetch('/v1/dashboard', {
+          headers: { 'X-API-Key': Shell.getKey() }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const m = data.metrics || {};
+          const used = m.requests_this_month || 0;
+          const limit = m.plan_limit || 10000;
+          const pct = Math.min(Math.round((used / limit) * 100), 100);
+
+          document.getElementById('usage-fraction').innerText = `${used.toLocaleString()} / ${limit.toLocaleString()} requests`;
+          document.getElementById('usage-pct-pill').innerText = `${pct}% used`;
+          document.getElementById('usage-bar-fill').style.width = `${pct}%`;
+        }
+
+        const resKeys = await fetch('/v1/keys', {
+          headers: { 'X-API-Key': Shell.getKey() }
+        });
+        if (resKeys.ok) {
+          const kData = await resKeys.json();
+          const tbody = document.getElementById('keys-table-body');
+          const keys = kData.keys || [];
+          if (keys.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="table-empty">No active keys returned.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = keys.map(k => `
+            <tr>
+              <td class="mono" style="font-weight: 600;">${k.prefix || 'aran_live_...'}</td>
+              <td>${k.label || 'API Key'}</td>
+              <td><span class="pill pill-neutral" style="font-size: 11px;">${Array.isArray(k.scopes) ? k.scopes.join(', ') : k.scopes}</span></td>
+              <td class="mono" style="color: var(--text-muted); font-size: 12px;">${(k.created_at || '').substring(0, 10)}</td>
+              <td><span class="pill pill-green">${k.revoked ? 'revoked' : 'active'}</span></td>
+            </tr>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load usage data:', err);
+      }
+    }
+
+    document.getElementById('btn-mint-key-usage').addEventListener('click', () => {
+      Shell.requestAdminKey('Mint New Scoped Key', async (adminKey) => {
+        const label = prompt('Enter key label:', 'Service Key');
+        if (!label) return;
+        try {
+          const res = await fetch('/v1/keys', {
+            method: 'POST',
+            headers: {
+              'X-API-Key': adminKey,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ label, scopes: ['protect', 'dashboard'] })
+          });
+          const d = await res.json();
+          if (res.ok) {
+            alert(`Key minted! Secret: ${d.api_key}\nSave it now; it cannot be shown again.`);
+            loadUsage();
+          } else {
+            Shell.toast('Error', d.detail || 'Could not mint key.', 'error');
+          }
+        } catch (e) {
+          Shell.toast('Error', 'Failed to call mint endpoint.', 'error');
+        }
+      });
+    });
+
+    loadUsage();
+  </script>
+</body>
+</html>
+

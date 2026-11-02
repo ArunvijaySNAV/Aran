@@ -1,0 +1,358 @@
+{
+ "bomFormat": "CycloneDX",
+ "specVersion": "1.6",
+ "components": [
+  {
+   "type": "cryptographic-asset",
+   "name": "AES (FF1 format-preserving encryption)",
+   "bom-ref": "crypto/AES (FF1 format-preserving encryption)",
+   "cryptoProperties": {
+    "assetType": "algorithm",
+    "algorithmProperties": {
+     "primitive": "block-cipher",
+     "classicalSecurityLevel": null,
+     "nistQuantumSecurityLevel": 0
+    }
+   },
+   "properties": [
+    {
+     "name": "aran:quantum",
+     "value": "depends on key size"
+    }
+   ],
+   "evidence": {
+    "occurrences": [
+     {
+      "location": "research/aran_core.py:93"
+     }
+    ]
+   }
+  },
+  {
+   "type": "cryptographic-asset",
+   "name": "AES-GCM",
+   "bom-ref": "crypto/AES-GCM",
+   "cryptoProperties": {
+    "assetType": "algorithm",
+    "algorithmProperties": {
+     "primitive": "ae",
+     "classicalSecurityLevel": null,
+     "nistQuantumSecurityLevel": 0
+    }
+   },
+   "properties": [
+    {
+     "name": "aran:quantum",
+     "value": "depends on key size"
+    }
+   ],
+   "evidence": {
+    "occurrences": [
+     {
+      "location": "research/pqc/hybrid.py:152"
+     },
+     {
+      "location": "research/pqc/hybrid.py:161"
+     },
+     {
+      "location": "research/firewall/shredder.py:192"
+     },
+     {
+      "location": "research/firewall/shredder.py:205"
+     }
+    ]
+   }
+  },
+  {
+   "type": "cryptographic-asset",
+   "name": "Ed25519 (hybrid with ML-DSA-65)",
+   "bom-ref": "crypto/Ed25519 (hybrid with ML-DSA-65)",
+   "cryptoProperties": {
+    "assetType": "algorithm",
+    "algorithmProperties": {
+     "primitive": "signature",
+     "classicalSecurityLevel": 128,
+     "nistQuantumSecurityLevel": 0
+    }
+   },
+   "properties": [
+    {
+     "name": "aran:quantum",
+     "value": "safe while the PQ half holds"
+    }
+   ],
+   "evidence": {
+    "occurrences": [
+     {
+      "location": "research/pqc/hybrid.py:29"
+     },
+     {
+      "location": "research/pqc/hybrid.py:53"
+     },
+     {
+      "location": "research/pqc/hybrid.py:73"
+     },
+     {
+      "location": "research/firewall/shredder.py:37"
+     },
+     {
+      "location": "research/firewall/shredder.py:137"
+     },
+     {
+      "location": "research/firewall/shredder.py:262"
+     }
+    ]
+   }
+  },
+  {
+   "type": "cryptographic-asset",
+   "name": "HMAC-SHA256",
+   "bom-ref": "crypto/HMAC-SHA256",
+   "cryptoProperties": {
+    "assetType": "algorithm",
+    "algorithmProperties": {
+     "primitive": "mac",
+     "classicalSecurityLevel": 256,
+     "nistQuantumSecurityLevel": 5
+    }
+   },
+   "properties": [
+    {
+     "name": "aran:quantum",
+     "value": "safe"
+    }
+   ],
+   "evidence": {
+    "occurrences": [
+     {
+      "location": "research/aran_core.py:142"
+     },
+     {
+      "location": "research/firewall/ledger.py:120"
+     },
+     {
+      "location": "research/firewall/shredder.py:150"
+     },
+     {
+      "location": "research/firewall/registry.py:131"
+     },
+     {
+      "location": "research/firewall/registry.py:157"
+     },
+     {
+      "location": "research/firewall/aran_firewall.py:37"
+     },
+     {
+      "location": "research/firewall/aran_firewall.py:42"
+     },
+     {
+      "location": "research/firewall/aran_firewall.py:86"
+     }
+    ]
+   }
+  },
+  {
+   "type": "cryptographic-asset",
+   "name": "ML-DSA-65",
+   "bom-ref": "crypto/ML-DSA-65",
+   "cryptoProperties": {
+    "assetType": "algorithm",
+    "algorithmProperties": {
+     "primitive": "signature",
+     "classicalSecurityLevel": 192,
+     "nistQuantumSecurityLevel": 3
+    }
+   },
+   "properties": [
+    {
+     "name": "aran:quantum",
+     "value": "safe"
+    }
+   ],
+   "evidence": {
+    "occurrences": [
+     {
+      "location": "research/pqc/hybrid.py:54"
+     },
+     {
+      "location": "research/pqc/hybrid.py:73"
+     }
+    ]
+   }
+  },
+  {
+   "type": "cryptographic-asset",
+   "name": "ML-KEM-768",
+   "bom-ref": "crypto/ML-KEM-768",
+   "cryptoProperties": {
+    "assetType": "algorithm",
+    "algorithmProperties": {
+     "primitive": "kem",
+     "classicalSecurityLevel": 192,
+     "nistQuantumSecurityLevel": 3
+    }
+   },
+   "properties": [
+    {
+     "name": "aran:quantum",
+     "value": "safe"
+    }
+   ],
+   "evidence": {
+    "occurrences": [
+     {
+      "location": "research/pqc/hybrid.py:98"
+     },
+     {
+      "location": "research/pqc/hybrid.py:110"
+     }
+    ]
+   }
+  },
+  {
+   "type": "cryptographic-asset",
+   "name": "SHA-256",
+   "bom-ref": "crypto/SHA-256",
+   "cryptoProperties": {
+    "assetType": "algorithm",
+    "algorithmProperties": {
+     "primitive": "hash",
+     "classicalSecurityLevel": 128,
+     "nistQuantumSecurityLevel": 1
+    }
+   },
+   "properties": [
+    {
+     "name": "aran:quantum",
+     "value": "safe"
+    }
+   ],
+   "evidence": {
+    "occurrences": [
+     {
+      "location": "research/aran_core.py:142"
+     },
+     {
+      "location": "research/gateway/ai_gateway.py:73"
+     },
+     {
+      "location": "research/gateway/ai_gateway.py:82"
+     },
+     {
+      "location": "research/firewall/ledger.py:120"
+     },
+     {
+      "location": "research/firewall/shredder.py:57"
+     },
+     {
+      "location": "research/firewall/shredder.py:61"
+     },
+     {
+      "location": "research/firewall/shredder.py:74"
+     },
+     {
+      "location": "research/firewall/shredder.py:150"
+     },
+     {
+      "location": "research/firewall/registry.py:131"
+     },
+     {
+      "location": "research/firewall/registry.py:157"
+     },
+     {
+      "location": "research/firewall/aran_firewall.py:37"
+     },
+     {
+      "location": "research/firewall/aran_firewall.py:42"
+     },
+     {
+      "location": "research/firewall/aran_firewall.py:86"
+     }
+    ]
+   }
+  },
+  {
+   "type": "cryptographic-asset",
+   "name": "SHA3-256",
+   "bom-ref": "crypto/SHA3-256",
+   "cryptoProperties": {
+    "assetType": "algorithm",
+    "algorithmProperties": {
+     "primitive": "hash",
+     "classicalSecurityLevel": 128,
+     "nistQuantumSecurityLevel": 1
+    }
+   },
+   "properties": [
+    {
+     "name": "aran:quantum",
+     "value": "safe"
+    }
+   ],
+   "evidence": {
+    "occurrences": [
+     {
+      "location": "research/pqc/hybrid.py:88"
+     },
+     {
+      "location": "research/pqc/hybrid.py:136"
+     },
+     {
+      "location": "research/pqc/hybrid.py:140"
+     }
+    ]
+   }
+  },
+  {
+   "type": "cryptographic-asset",
+   "name": "X25519 (hybrid with ML-KEM-768)",
+   "bom-ref": "crypto/X25519 (hybrid with ML-KEM-768)",
+   "cryptoProperties": {
+    "assetType": "algorithm",
+    "algorithmProperties": {
+     "primitive": "key-agreement",
+     "classicalSecurityLevel": 128,
+     "nistQuantumSecurityLevel": 0
+    }
+   },
+   "properties": [
+    {
+     "name": "aran:quantum",
+     "value": "safe while the PQ half holds"
+    }
+   ],
+   "evidence": {
+    "occurrences": [
+     {
+      "location": "research/pqc/hybrid.py:30"
+     },
+     {
+      "location": "research/pqc/hybrid.py:97"
+     },
+     {
+      "location": "research/pqc/hybrid.py:107"
+     },
+     {
+      "location": "research/pqc/hybrid.py:109"
+     },
+     {
+      "location": "research/pqc/hybrid.py:115"
+     },
+     {
+      "location": "research/pqc/hybrid.py:126"
+     },
+     {
+      "location": "research/pqc/hybrid.py:133"
+     },
+     {
+      "location": "research/pqc/hybrid.py:135"
+     },
+     {
+      "location": "research/pqc/hybrid.py:139"
+     }
+    ]
+   }
+  }
+ ],
+ "properties": []
+}

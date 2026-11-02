@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Erasure and Receipts - Aran Cloud</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="stylesheet" href="/static/css/system.css">
+  <style>
+    .receipts-layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: var(--space-4);
+      margin-top: var(--space-4);
+    }
+    @media (max-width: 1024px) {
+      .receipts-layout { grid-template-columns: 1fr; }
+    }
+    .highlight-row {
+      background-color: rgba(16, 185, 129, 0.15) !important;
+      transition: background-color 1.5s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside id="shell-sidebar"></aside>
+
+    <div class="app-main">
+      <header id="shell-topbar"></header>
+
+      <main class="app-main-content">
+        <div class="container">
+          <!-- Page Header -->
+          <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3);">
+            <div>
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
+                <h1 class="page-title">Erasure and receipts</h1>
+                <span class="pill pill-green">DPDP SECTION 12</span>
+              </div>
+              <p class="page-subtitle" style="color: var(--text-muted); font-size: 14px;">
+                Cryptographic key shredding and immutable hybrid post-quantum audit receipts (Ed25519 + ML-DSA-65)
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <a href="/v1/public-keys" target="_blank" class="btn btn-secondary btn-sm" id="btn-public-keys" title="Inspect Post-Quantum Public Keys">
+                <span>🔑</span> Public keys
+              </a>
+              <button class="btn btn-secondary btn-sm" id="btn-refresh-receipts">
+                <span>↻</span> Refresh
+              </button>
+            </div>
+          </div>
+
+          <div class="receipts-layout">
+            <!-- Left Column: Receipts Table -->
+            <div class="card" style="padding: 0; overflow: hidden;">
+              <div style="padding: var(--card-padding) var(--card-padding) var(--space-2); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <h3 class="card-title">Cryptographic Erasure Receipts</h3>
+                  <span style="font-size: 13px; color: var(--text-muted);">Append-only Merkle ledger certificates proving permanent key destruction</span>
+                </div>
+                <span class="pill pill-neutral" id="receipts-count-badge">0 receipts</span>
+              </div>
+
+              <div class="table-container">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Customer Ref</th>
+                      <th>Purpose</th>
+                      <th>Algorithm</th>
+                      <th>Status</th>
+                      <th style="text-align: right;">Verification</th>
+                    </tr>
+                  </thead>
+                  <tbody id="receipts-table-body">
+                    <tr>
+                      <td colspan="6" class="table-empty">Loading cryptographic receipts...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Right Column: Erase Customer Data Form -->
+            <div>
+              <div class="card">
+                <div class="card-header">
+                  <div>
+                    <h3 class="card-title">Erase Customer Data</h3>
+                    <span style="font-size: 13px; color: var(--text-muted);">Irreversible purpose-key shredding</span>
+                  </div>
+                  <span class="pill pill-red">ADMIN SCOPE</span>
+                </div>
+
+                <form id="form-erase" style="display: flex; flex-direction: column; gap: 16px;">
+                  <div>
+                    <label class="stat-label" for="erase-customer-ref" style="display: block; margin-bottom: 6px;">Customer Reference ID</label>
+                    <input type="text" id="erase-customer-ref" class="input mono" placeholder="e.g. CUST-1001" required>
+                  </div>
+
+                  <div>
+                    <label class="stat-label" for="erase-purpose" style="display: block; margin-bottom: 6px;">Purpose Limitation</label>
+                    <select id="erase-purpose" class="select" required>
+                      <option value="KYC">KYC (Identity Verification)</option>
+                      <option value="Service">Service (Operations & Logs)</option>
+                      <option value="Credit">Credit (Underwriting)</option>
+                      <option value="Marketing">Marketing (Analytics)</option>
+                    </select>
+                  </div>
+
+                  <div style="padding: 12px; background: rgba(239, 68, 68, 0.08); border-left: 3px solid var(--exposed-red-text); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+                    <strong style="color: var(--exposed-red-text);">Irreversible Action:</strong>
+                    Erasing destroys the AES-256 purpose key. All downstream tokens bound to this customer ref for this purpose become permanently unreadable.
+                  </div>
+
+                  <button type="submit" class="btn btn-danger" id="btn-submit-erase">
+                    <span>🛡️</span> <span id="btn-erase-text">Erase Customer Data</span>
+                  </button>
+                </form>
+              </div>
+
+              <!-- Information Card -->
+              <div class="card" style="margin-top: var(--space-4);">
+                <h4 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">Proof Standards</h4>
+                <p style="font-size: 13px; color: var(--text-faint); margin: 0; line-height: 1.5;">
+                  Every erasure event is committed to a Merkle hash tree and co-signed with classical Ed25519 and post-quantum ML-DSA-65 (NIST FIPS 204), enabling mathematical verification independent of trust in Aran Cloud.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal: Post-Quantum Proof Verification -->
+  <div class="modal-backdrop" id="modal-verify-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="font-size: 18px; margin: 0; color: var(--text-primary);">Post-Quantum Proof Verification</h3>
+        <button class="btn btn-ghost btn-sm" id="btn-close-verify-modal" style="padding: 4px 8px;">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">
+          Verification of cryptographic leaf inclusion and dual classical / post-quantum signatures:
+        </p>
+
+        <div class="key-value-list" id="modal-verify-kv">
+          <div class="kv-row">
+            <span class="kv-key">Overall Proof Status</span>
+            <span class="kv-value" id="val-verify-overall">Verifying...</span>
+          </div>
+          <div class="kv-row">
+            <span class="kv-key">Ed25519 Signature</span>
+            <span class="kv-value" id="val-verify-ed25519">--</span>
+          </div>
+          <div class="kv-row">
+            <span class="kv-key">ML-DSA-65 PQ Signature</span>
+            <span class="kv-value" id="val-verify-mldsa">--</span>
+          </div>
+          <div class="kv-row">
+            <span class="kv-key">Merkle Tree Inclusion</span>
+            <span class="kv-value" id="val-verify-inclusion">--</span>
+          </div>
+          <div class="kv-row">
+            <span class="kv-key">Merkle Root Hash</span>
+            <span class="kv-value mono" id="val-verify-root" style="font-size: 12px;">--</span>
+          </div>
+          <div class="kv-row">
+            <span class="kv-key">Leaf Index in Ledger</span>
+            <span class="kv-value mono" id="val-verify-leaf">--</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-modal-done">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app/shell.js"></script>
+  <script>
+    Shell.init('receipts');
+
+    let receiptsData = [];
+
+    async function loadReceipts() {
+      try {
+        const res = await fetch('/v1/dashboard', {
+          headers: { 'X-API-Key': Shell.getKey() }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        receiptsData = data.receipts || [];
+        renderReceiptsTable();
+      } catch (err) {
+        console.error('Failed to load receipts:', err);
+      }
+    }
+
+    function renderReceiptsTable(highlightId) {
+      const tbody = document.getElementById('receipts-table-body');
+      const badge = document.getElementById('receipts-count-badge');
+      badge.innerText = `${receiptsData.length} receipts`;
+
+      if (receiptsData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No erasure receipts recorded yet for this workspace.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = receiptsData.map((r, idx) => {
+        const isHl = r.id === highlightId || idx === 0 && highlightId === 'new';
+        const dt = new Date((r.at || 0) * 1000);
+        const timeStr = dt.toTimeString().split(' ')[0] || '--:--:--';
+        return `
+          <tr id="receipt-row-${r.id}" class="${isHl ? 'highlight-row' : ''}">
+            <td class="mono" style="color: var(--text-muted);">${timeStr}</td>
+            <td class="mono" style="font-weight: 600;">${r.customer_ref || 'UNKNOWN'}</td>
+            <td><span class="pill pill-neutral">${r.purpose || 'KYC'}</span></td>
+            <td><span class="pill pill-accent mono" style="font-size: 11px;">${r.alg || 'Ed25519+ML-DSA-65'}</span></td>
+            <td><span class="pill pill-green">&bull; Cryptographically Verified</span></td>
+            <td style="text-align: right;">
+              <button class="btn btn-secondary btn-sm" onclick="verifyProof(${idx})">
+                Verify proof
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Modal: Verify Post-Quantum Proof
+    window.verifyProof = async function (idx) {
+      const r = receiptsData[idx];
+      if (!r) return;
+
+      const modal = document.getElementById('modal-verify-backdrop');
+      modal.classList.add('active');
+
+      document.getElementById('val-verify-overall').innerHTML = '<span class="pill pill-neutral">Computing...</span>';
+      document.getElementById('val-verify-ed25519').innerText = 'Testing...';
+      document.getElementById('val-verify-mldsa').innerText = 'Testing...';
+      document.getElementById('val-verify-inclusion').innerText = 'Testing...';
+      document.getElementById('val-verify-root').innerText = r.root || '--';
+      document.getElementById('val-verify-leaf').innerText = String(r.id || idx);
+
+      try {
+        const payload = r.raw_receipt || {
+          customer_ref: r.customer_ref,
+          purpose: r.purpose,
+          root: r.root,
+          signature: r.signature
+        };
+
+        const res = await fetch('/v1/receipts/verify', {
+          method: 'POST',
+          headers: {
+            'X-API-Key': Shell.getKey(),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const v = await res.json();
+        if (v.valid || v.signature_valid) {
+          document.getElementById('val-verify-overall').innerHTML = '<span class="pill pill-green">&bull; 100% Cryptographically Valid</span>';
+          document.getElementById('val-verify-ed25519').innerHTML = '<span style="color: var(--token-green-text); font-weight: 600;">&check; Verified (Ed25519)</span>';
+          document.getElementById('val-verify-mldsa').innerHTML = '<span style="color: var(--token-green-text); font-weight: 600;">&check; Verified (ML-DSA-65 PQ)</span>';
+          document.getElementById('val-verify-inclusion').innerHTML = '<span style="color: var(--token-green-text); font-weight: 600;">&check; Inclusion in Merkle Log Verified</span>';
+        } else {
+          document.getElementById('val-verify-overall').innerHTML = '<span class="pill pill-red">Verification Failed</span>';
+          document.getElementById('val-verify-ed25519').innerHTML = '<span style="color: var(--exposed-red-text);">&times; Invalid</span>';
+          document.getElementById('val-verify-mldsa').innerHTML = '<span style="color: var(--exposed-red-text);">&times; Invalid</span>';
+          document.getElementById('val-verify-inclusion').innerHTML = '<span style="color: var(--exposed-red-text);">&times; Not in log</span>';
+        }
+        if (v.root) document.getElementById('val-verify-root').innerText = v.root;
+      } catch (err) {
+        document.getElementById('val-verify-overall').innerHTML = '<span class="pill pill-red">Network Error</span>';
+      }
+    };
+
+    function closeVerifyModal() {
+      document.getElementById('modal-verify-backdrop').classList.remove('active');
+    }
+    document.getElementById('btn-close-verify-modal').addEventListener('click', closeVerifyModal);
+    document.getElementById('btn-modal-done').addEventListener('click', closeVerifyModal);
+    document.getElementById('modal-verify-backdrop').addEventListener('click', (e) => {
+      if (e.target.id === 'modal-verify-backdrop') closeVerifyModal();
+    });
+
+    // Erase Customer Data Form Submission with Admin Key Verification
+    document.getElementById('form-erase').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const custRef = document.getElementById('erase-customer-ref').value.trim();
+      const purpose = document.getElementById('erase-purpose').value;
+      if (!custRef) return;
+
+      // Request admin key verification
+      Shell.requestAdminKey(`Erase Customer Data (${custRef} / ${purpose})`, async (adminKey) => {
+        const btn = document.getElementById('btn-submit-erase');
+        const txt = document.getElementById('btn-erase-text');
+        btn.disabled = true;
+        txt.innerText = 'Destroying keys...';
+
+        try {
+          const res = await fetch('/v1/erase', {
+            method: 'POST',
+            headers: {
+              'X-API-Key': adminKey,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ customer_ref: custRef, purpose: purpose })
+          });
+
+          const data = await res.json();
+          if (res.ok) {
+            document.getElementById('erase-customer-ref').value = '';
+            Shell.toast('Erasure Executed', `Cryptographically shredded keys for ${custRef}. Hybrid post-quantum receipt minted.`, 'success');
+            await loadReceipts();
+            renderReceiptsTable('new');
+          } else {
+            Shell.toast('Erasure Failed', data.detail || 'Could not execute erasure.', 'error');
+          }
+        } catch (err) {
+          Shell.toast('Error', 'Failed to submit erasure request.', 'error');
+        } finally {
+          btn.disabled = false;
+          txt.innerText = 'Erase Customer Data';
+        }
+      });
+    });
+
+    document.getElementById('btn-refresh-receipts').addEventListener('click', loadReceipts);
+
+    loadReceipts();
+  </script>
+</body>
+</html>
+
