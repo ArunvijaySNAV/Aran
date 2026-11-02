@@ -1499,9 +1499,4 @@ def serve_app_root():
     return RedirectResponse(url="/dashboard#overview")
 
 
-@app.get("/styleguide")
-def serve_styleguide():
-    return FileResponse(os.path.join(STATIC_DIR, "styleguide.html"))
-
-
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

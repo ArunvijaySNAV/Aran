@@ -51,7 +51,6 @@ Field-format experiment (`docs/measurements/field_formats.json`, 40 samples per 
 - Tenant engines serialise model inference behind one lock (the CRF tagger is not thread-safe); fine at ~1 ms per call, a ceiling at high concurrency. Immune-layer state and Data-flow samples are in memory only. `/v1/dashboard` loads all of a tenant's usage events (no pagination).
 - Portal secret guessing is limited in memory (5 tries per reference per 10 minutes), per instance only.
 - Plaintext scanner checks text columns only (not numeric columns) and the three patterns in the brief.
-- The Aran console's old pages under `aran-cloud/cloud/static/app/*.html`, `css/{cloud,landing,system,tokens}.css` and `styleguide.html` are no longer linked (`/app/*` redirects to the new dashboard). They were left in place; delete them if you agree.
 
 ## Not verified
 - Any deployment: Vercel, hosted Supabase (only the Supabase CLI local stack was used), Cloudflare Tunnel (including the latency through it and `ARAN_TRUST_CF=1` behind real Cloudflare headers; the trust logic is unit-tested with synthetic headers).
