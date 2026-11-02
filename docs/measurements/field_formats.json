@@ -1,0 +1,101 @@
+{
+  "measured_at": "2026-11-03 00:42:13",
+  "results": {
+    "name": {
+      "Customer name: {v}": {
+        "protected": 32,
+        "of": 40,
+        "rate": 0.8,
+        "raw_value_left_in_output": 8
+      },
+      "Account holder {v} opened an account": {
+        "protected": 40,
+        "of": 40,
+        "rate": 1.0,
+        "raw_value_left_in_output": 0
+      },
+      "Name: {v}": {
+        "protected": 31,
+        "of": 40,
+        "rate": 0.775,
+        "raw_value_left_in_output": 9
+      }
+    },
+    "mobile": {
+      "Mobile {v}": {
+        "protected": 40,
+        "of": 40,
+        "rate": 1.0,
+        "raw_value_left_in_output": 0
+      },
+      "Mobile number: {v}": {
+        "protected": 40,
+        "of": 40,
+        "rate": 1.0,
+        "raw_value_left_in_output": 0
+      },
+      "Customer mobile: +91{v}": {
+        "protected": 40,
+        "of": 40,
+        "rate": 1.0,
+        "raw_value_left_in_output": 0
+      }
+    },
+    "aadhaar": {
+      "Aadhaar {v}": {
+        "protected": 40,
+        "of": 40,
+        "rate": 1.0,
+        "raw_value_left_in_output": 0
+      },
+      "Aadhaar number: {v}": {
+        "protected": 40,
+        "of": 40,
+        "rate": 1.0,
+        "raw_value_left_in_output": 0
+      }
+    },
+    "card": {
+      "Card {v}": {
+        "protected": 40,
+        "of": 40,
+        "rate": 1.0,
+        "raw_value_left_in_output": 0
+      },
+      "Card number: {v}": {
+        "protected": 40,
+        "of": 40,
+        "rate": 1.0,
+        "raw_value_left_in_output": 0
+      }
+    },
+    "pan": {
+      "PAN {v}": {
+        "protected": 40,
+        "of": 40,
+        "rate": 1.0,
+        "raw_value_left_in_output": 0
+      },
+      "PAN number: {v}": {
+        "protected": 40,
+        "of": 40,
+        "rate": 1.0,
+        "raw_value_left_in_output": 0
+      }
+    },
+    "upi": {
+      "UPI ID {v}": {
+        "protected": 40,
+        "of": 40,
+        "rate": 1.0,
+        "raw_value_left_in_output": 0
+      },
+      "UPI: {v}": {
+        "protected": 40,
+        "of": 40,
+        "rate": 1.0,
+        "raw_value_left_in_output": 0
+      }
+    }
+  }
+}
