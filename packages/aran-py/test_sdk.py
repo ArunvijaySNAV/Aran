@@ -37,7 +37,7 @@ def get_sample_pii():
     secret = get_internal_secret()
     req = urllib.request.Request(
         f"{CORE_URL}/api/tour/generate",
-        headers={"X-Aran-Internal": secret} if secret else {},
+        headers=({"X-Aran-Internal": secret} if secret else {}) | {"X-Aran-Tenant": "test-fixtures"},
     )
     with urllib.request.urlopen(req) as resp:
         return json.loads(resp.read().decode("utf-8"))
