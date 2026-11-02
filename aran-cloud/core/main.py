@@ -51,6 +51,10 @@ def _load():
 
 @app.on_event("startup")
 def startup():
+    if not os.environ.get("ARAN_INTERNAL_SECRET") and os.environ.get("ARAN_ALLOW_INSECURE_CORE") != "1":
+        raise RuntimeError(
+            "ARAN_INTERNAL_SECRET is not set: refusing to start an unauthenticated core. "
+            "Set it, or set ARAN_ALLOW_INSECURE_CORE=1 for throwaway local development only.")
     threading.Thread(target=_load, daemon=True).start()
 
 

@@ -352,25 +352,19 @@ def test_core_lockdown():
 
 # ---------------------------------------------------------------- 5. Basic Rate Limits
 def test_rate_limits():
-    # Test 1: Workspace signup rate limit (5 per hour per IP)
-    test_ip = f"192.168.{int(time.time()) % 250}.{int(time.time() * 10) % 250}"
-    for i in range(5):
-        r = requests.post(
-            f"{CLOUD_URL}/v1/workspaces",
-            headers={"X-Forwarded-For": test_ip},
-            json={"name": f"Rate Limit Test {i}_{time.time()}", "email": f"rl_{i}_{time.time()}@test.com"},
-        )
-        assert r.status_code == 200, r.text
-
-    # 6th signup must return 429 Too Many Requests with Retry-After header
-    r_blocked = requests.post(
-        f"{CLOUD_URL}/v1/workspaces",
-        headers={"X-Forwarded-For": test_ip},
-        json={"name": "Blocked Tenant", "email": f"blocked_{time.time()}@test.com"},
-    )
-    assert r_blocked.status_code == 429
-    assert "Retry-After" in r_blocked.headers
-    assert int(r_blocked.headers["Retry-After"]) > 0
+    # Test 1: Workspace signup rate limit (5 per hour per IP), on a non-demo instance
+    # (demo mode exempts localhost). The IP is the socket peer; XFF cannot move the bucket.
+    inst = CloudInstance(ARAN_SIGNUP_LIMIT="5")
+    try:
+        for i in range(5):
+            r = inst.signup({"X-Forwarded-For": f"192.168.1.{i}"}, tag=f"rl{i}")
+            assert r.status_code == 200, r.text
+        r_blocked = inst.signup({"X-Forwarded-For": "192.168.77.77"}, tag="blocked")
+        assert r_blocked.status_code == 429
+        assert "Retry-After" in r_blocked.headers
+        assert int(r_blocked.headers["Retry-After"]) > 0
+    finally:
+        inst.stop()
 
     # Test 2: Per key rate limit (300 requests per minute)
     raw_key = f"aran_live_ratelimit_{os.urandom(8).hex()}"
@@ -463,3 +457,209 @@ def test_reset_limiters_authorization_and_demo_mode(tenant_alpha):
         )
         assert r.status_code == 200, f"Expected 200 on localhost in demo mode, got {r.status_code}: {r.text}"
 
+
+
+# ================================================================ Phase 1 hardening tests
+import socket
+import subprocess
+import sys
+import tempfile
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
+
+
+def _free_port():
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+class CloudInstance:
+    """A throwaway cloud process with its own DB and env, pointed at the shared core."""
+
+    def __init__(self, **env):
+        self.port = _free_port()
+        self.url = f"http://127.0.0.1:{self.port}"
+        self.dir = tempfile.mkdtemp(prefix="aran-cloud-test-")
+        e = dict(os.environ)
+        for k in ("ARAN_DEMO_MODE", "ARAN_TRUST_CF", "ARAN_CORS_ORIGINS", "ARAN_SIGNUP_LIMIT"):
+            e.pop(k, None)
+        e.update({"ARAN_CLOUD_DB": os.path.join(self.dir, "cloud.db"), "ARAN_CORE_URL": CORE_URL}, **env)
+        self.db = e["ARAN_CLOUD_DB"]
+        self.proc = subprocess.Popen(
+            [sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", str(self.port), "--no-proxy-headers"],
+            cwd=HERE, env=e, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        for _ in range(60):
+            try:
+                if requests.get(f"{self.url}/v1/health", timeout=1).status_code == 200:
+                    return
+            except Exception:
+                time.sleep(0.25)
+        self.stop()
+        raise RuntimeError("test cloud instance did not start")
+
+    def stop(self):
+        self.proc.terminate()
+        try:
+            self.proc.wait(timeout=5)
+        except Exception:
+            self.proc.kill()
+
+    def signup(self, headers=None, tag="x"):
+        return requests.post(f"{self.url}/v1/workspaces", headers=headers or {},
+                             json={"name": f"T {tag} {time.time()}", "email": f"{tag}@t.com"})
+
+    def key_count(self):
+        conn = sqlite3.connect(self.db)
+        n = conn.execute("SELECT count(*) FROM api_keys").fetchone()[0]
+        conn.close()
+        return n
+
+
+@pytest.fixture()
+def cloud_prod():
+    """Production-like: demo mode off, CF not trusted, signup limit 2."""
+    c = CloudInstance(ARAN_SIGNUP_LIMIT="2")
+    yield c
+    c.stop()
+
+
+@pytest.fixture()
+def cloud_cf():
+    c = CloudInstance(ARAN_SIGNUP_LIMIT="2", ARAN_TRUST_CF="1")
+    yield c
+    c.stop()
+
+
+@pytest.fixture()
+def cloud_demo():
+    c = CloudInstance(ARAN_DEMO_MODE="1")
+    yield c
+    c.stop()
+
+
+def test_demo_seed_is_404_when_demo_mode_off(cloud_prod):
+    admin = cloud_prod.signup(tag="seed-off").json()["api_key"]
+    before = cloud_prod.key_count()
+    r = requests.post(f"{cloud_prod.url}/v1/demo/seed", headers={"X-API-Key": admin})
+    assert r.status_code == 404
+    assert cloud_prod.key_count() == before
+
+
+def test_demo_seed_is_404_for_non_admin_and_never_inserts_keys(cloud_demo):
+    ws = cloud_demo.signup(tag="seed-on").json()
+    admin = ws["api_key"]
+    protect_only = requests.post(f"{cloud_demo.url}/v1/keys", headers={"X-API-Key": admin},
+                                 json={"label": "p", "scopes": ["protect"]}).json()["api_key"]
+    erase_only_admin_less = requests.post(f"{cloud_demo.url}/v1/keys", headers={"X-API-Key": admin},
+                                          json={"label": "e", "scopes": ["erase", "dashboard"]}).json()["api_key"]
+    before = cloud_demo.key_count()
+    for k in (protect_only, erase_only_admin_less, ws["dashboard_key"]):
+        r = requests.post(f"{cloud_demo.url}/v1/demo/seed", headers={"X-API-Key": k})
+        assert r.status_code == 404, r.text
+    # an unauthenticated call is still a plain 401, never a 200
+    assert requests.post(f"{cloud_demo.url}/v1/demo/seed").status_code == 401
+    assert cloud_demo.key_count() == before
+    # admin on a demo-mode instance is allowed through (not 404) and still mints no key
+    r = requests.post(f"{cloud_demo.url}/v1/demo/seed", headers={"X-API-Key": admin}, timeout=90)
+    assert r.status_code != 404
+    assert cloud_demo.key_count() == before
+
+
+def test_no_code_path_substitutes_an_admin_key():
+    src = open(os.path.join(HERE, "main.py")).read()
+    assert "Seeding Admin Key" not in src
+    assert "temp_admin_key" not in src
+    seed = open(os.path.join(REPO, "scripts", "seed_demo.py")).read()
+    assert "aran_live_" not in seed  # no hard-coded fallback key
+
+
+def test_signup_limit_ignores_spoofed_forwarded_headers(cloud_prod):
+    codes = []
+    for i in range(3):
+        h = {"X-Forwarded-For": f"10.9.9.{i}", "CF-Connecting-IP": f"10.8.8.{i}"}
+        codes.append(cloud_prod.signup(h, tag=f"spoof{i}").status_code)
+    assert codes == [200, 200, 429], codes
+
+
+def test_signup_limit_uses_cf_ip_only_when_trusted(cloud_cf):
+    ok = [cloud_cf.signup({"CF-Connecting-IP": f"203.0.113.{i}", "X-Forwarded-For": "1.1.1.1"}, tag=f"cf{i}").status_code
+          for i in range(4)]
+    assert ok == [200, 200, 200, 200], ok  # distinct CF IPs are separate buckets
+    same = [cloud_cf.signup({"CF-Connecting-IP": "198.51.100.7"}, tag=f"same{i}").status_code for i in range(3)]
+    assert same == [200, 200, 429], same
+
+
+def test_docker_compose_demo_mode_defaults_to_off():
+    text = open(os.path.join(REPO, "docker-compose.yml")).read()
+    assert "ARAN_DEMO_MODE=${ARAN_DEMO_MODE:-0}" in text
+    assert "ARAN_DEMO_MODE=1" not in text
+
+
+def test_core_refuses_to_start_without_internal_secret():
+    env = {k: v for k, v in os.environ.items() if k != "ARAN_INTERNAL_SECRET"}
+    env.pop("ARAN_ALLOW_INSECURE_CORE", None)
+    env["ARAN_CUSTOMERS"] = "0"
+    p = subprocess.run(
+        [sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", str(_free_port())],
+        cwd=os.path.join(HERE, "..", "core"), env=env, capture_output=True, text=True, timeout=60)
+    assert p.returncode != 0
+    assert "ARAN_INTERNAL_SECRET is not set" in (p.stdout + p.stderr)
+
+
+def test_core_starts_insecure_only_with_explicit_opt_in():
+    port = _free_port()
+    env = {k: v for k, v in os.environ.items() if k != "ARAN_INTERNAL_SECRET"}
+    env.update(ARAN_ALLOW_INSECURE_CORE="1", ARAN_CUSTOMERS="0", ARAN_STORE="")
+    p = subprocess.Popen([sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", str(port)],
+                         cwd=os.path.join(HERE, "..", "core"), env=env,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        up = False
+        for _ in range(60):
+            try:
+                up = requests.get(f"http://127.0.0.1:{port}/api/health", timeout=1).status_code == 200
+                break
+            except Exception:
+                time.sleep(0.5)
+        assert up
+    finally:
+        p.terminate()
+        p.wait(timeout=10)
+
+
+def test_cors_is_closed_by_default_and_opt_in_by_env(cloud_prod):
+    h = {"Origin": "https://evil.example", "Access-Control-Request-Method": "POST"}
+    r = requests.options(f"{cloud_prod.url}/v1/protect", headers=h)
+    assert "access-control-allow-origin" not in {k.lower() for k in r.headers}
+    r = requests.get(f"{cloud_prod.url}/v1/health", headers={"Origin": "https://evil.example"})
+    assert "access-control-allow-origin" not in {k.lower() for k in r.headers}
+    c = CloudInstance(ARAN_CORS_ORIGINS="https://console.example")
+    try:
+        r = requests.options(f"{c.url}/v1/protect", headers={"Origin": "https://console.example",
+                                                             "Access-Control-Request-Method": "POST"})
+        assert r.headers.get("access-control-allow-origin") == "https://console.example"
+        r = requests.options(f"{c.url}/v1/protect", headers=h)
+        assert "access-control-allow-origin" not in {k.lower() for k in r.headers}
+    finally:
+        c.stop()
+
+
+def test_protect_only_key_gets_403_on_privileged_routes(tenant_alpha):
+    admin = tenant_alpha["api_key"]
+    protect_only = requests.post(f"{CLOUD_URL}/v1/keys", headers={"X-API-Key": admin},
+                                 json={"label": "p-only", "scopes": ["protect"]}).json()
+    pk = {"X-API-Key": protect_only["api_key"]}
+    checks = [
+        ("POST", "/v1/detokenise", {"token": "123456789012"}),
+        ("POST", "/v1/erase", {"customer_ref": "X1", "purpose": "KYC"}),
+        ("POST", "/v1/keys", {"label": "escalate", "scopes": ["admin"]}),
+        ("DELETE", f"/v1/keys/{protect_only['id']}", None),
+    ]
+    for method, path, body in checks:
+        r = requests.request(method, f"{CLOUD_URL}{path}", headers=pk, json=body)
+        assert r.status_code == 403, (method, path, r.status_code, r.text)
+    # the key was not revoked by the denied DELETE
+    r = requests.post(f"{CLOUD_URL}/v1/protect", headers=pk, json={"text": "hello"})
+    assert r.status_code == 200

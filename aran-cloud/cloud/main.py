@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import numpy as np
 from pydantic import BaseModel
@@ -34,7 +34,7 @@ ARAN_ADMIN_TOKEN = os.environ.get("ARAN_ADMIN_TOKEN")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(HERE, "static")
-DB_PATH = os.path.join(HERE, "cloud.db")
+DB_PATH = os.environ.get("ARAN_CLOUD_DB") or os.path.join(HERE, "cloud.db")
 
 VALID_SCOPES = {"admin", "protect", "gateway", "trace", "detokenise", "erase", "verify", "dashboard"}
 DEFAULT_ADMIN_SCOPES = "admin,protect,gateway,trace,detokenise,erase,verify,dashboard"
@@ -43,6 +43,8 @@ DEFAULT_ADMIN_SCOPES = "admin,protect,gateway,trace,detokenise,erase,verify,dash
 RATE_LIMIT_PER_KEY = int(os.environ.get("ARAN_RATE_LIMIT_PER_KEY", "300"))
 ARAN_SIGNUP_LIMIT = int(os.environ.get("ARAN_SIGNUP_LIMIT", os.environ.get("ARAN_SIGNUP_LIMIT_PER_IP", "5")))
 ARAN_DEMO_MODE = os.environ.get("ARAN_DEMO_MODE", "0") in ("1", "true", "True")
+ARAN_TRUST_CF = os.environ.get("ARAN_TRUST_CF", "0") in ("1", "true", "True")
+ARAN_CORS_ORIGINS = [o.strip() for o in os.environ.get("ARAN_CORS_ORIGINS", "").split(",") if o.strip()]
 
 _key_request_timestamps = defaultdict(deque)  # key_hash -> deque of timestamps
 _signup_ip_timestamps = defaultdict(deque)    # ip -> deque of timestamps
@@ -72,12 +74,19 @@ def check_key_rate_limit(key_hash: str):
         ts_queue.append(now)
 
 
+def client_ip(request: Request) -> str:
+    """The caller's IP. CF-Connecting-IP is trusted only behind Cloudflare (ARAN_TRUST_CF=1);
+    X-Forwarded-For is never read because any client can set it. Run uvicorn with
+    --no-proxy-headers, otherwise uvicorn itself rewrites request.client.host from XFF."""
+    if ARAN_TRUST_CF:
+        cf = (request.headers.get("CF-Connecting-IP") or "").strip()
+        if cf:
+            return cf
+    return request.client.host if request.client else "127.0.0.1"
+
+
 def check_signup_rate_limit(request: Request):
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        ip = forwarded.split(",")[0].strip()
-    else:
-        ip = request.client.host if request.client else "127.0.0.1"
+    ip = client_ip(request)
 
     if is_demo_exempt(ip):
         return
@@ -105,8 +114,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=ARAN_CORS_ORIGINS,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -1266,28 +1275,14 @@ def get_v1_health():
 
 @app.post("/v1/demo/seed")
 def trigger_demo_seed(request: Request, tenant: dict = Depends(get_current_tenant)):
-    """Triggers realistic demo traffic seeding for the calling workspace."""
+    """Seeds demo traffic for the calling workspace using the caller's own admin key.
+    Hidden (404) unless ARAN_DEMO_MODE=1 and the key has the admin scope. Never mints a key."""
     import subprocess
     import sys
-    tenant_id = tenant["id"]
-    scopes = tenant.get("scopes", [])
-    api_key = request.headers.get("X-API-Key")
-
-    if "admin" not in scopes or "erase" not in scopes:
-        temp_admin_key = f"aran_live_{secrets.token_hex(16)}"
-        key_hash = hashlib.sha256(temp_admin_key.encode()).hexdigest()
-        conn = get_db()
-        with conn:
-            conn.execute(
-                """
-                INSERT INTO api_keys (tenant_id, key_hash, prefix, label, scopes, created_at, revoked)
-                VALUES (?, ?, ?, 'Seeding Admin Key', ?, ?, 0)
-                """,
-                (tenant_id, key_hash, temp_admin_key[:14], DEFAULT_ADMIN_SCOPES, datetime.now(timezone.utc).isoformat()),
-            )
-        api_key = temp_admin_key
-
-    script_path = os.path.join(HERE, "..", "scripts", "seed_demo.py")
+    if not ARAN_DEMO_MODE or "admin" not in tenant.get("scopes", []):
+        raise HTTPException(status_code=404, detail="Not Found")
+    api_key = (request.headers.get("X-API-Key") or "").strip()
+    script_path = os.path.join(HERE, "..", "..", "scripts", "seed_demo.py")
     res = subprocess.run(
         [sys.executable, script_path, "--api-key", api_key],
         capture_output=True,
