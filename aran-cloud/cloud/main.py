@@ -2,7 +2,7 @@
 
 Provides:
 - Workspaces and API Key generation (SHA-256 stored).
-- Tenant namespacing and cross-tenant owner isolation safeguards.
+- Per-tenant engines in the core (X-Aran-Tenant); no shared vault or namespacing.
 - Per-tenant usage metering and deterministic latency calculation.
 - Granular per-tenant audit logs, erasure receipts, and dashboard metrics.
 """
@@ -502,12 +502,14 @@ class KeyCreateIn(BaseModel):
 
 
 # ---------------------------------------------------------------- helpers
-def call_core(method: str, endpoint: str, json_data: dict = None, admin: bool = False, timeout: float = 10.0):
+def call_core(method: str, endpoint: str, json_data: dict = None, admin: bool = False, timeout: float = 10.0, tenant_id: str = None):
     url = f"{ARAN_CORE_URL}{endpoint}"
     headers = {"Content-Type": "application/json"}
     internal_secret = os.environ.get("ARAN_INTERNAL_SECRET")
     if internal_secret:
         headers["X-Aran-Internal"] = internal_secret
+    if tenant_id:
+        headers["X-Aran-Tenant"] = tenant_id   # selects the tenant's own engine in the core
     if admin and ARAN_ADMIN_TOKEN:
         headers["X-Admin-Token"] = ARAN_ADMIN_TOKEN
     try:
@@ -692,57 +694,34 @@ def revoke_key(key_id: str, tenant: dict = Depends(require_scope("admin"))):
 
 @app.post("/v1/protect")
 def protect(body: ProtectIn, tenant: dict = Depends(require_scope("protect"))):
-    """Namespaces customer_ref, forwards to core /api/process, meters usage, and applies tenant isolation safeguards."""
+    """Forwards to the calling tenant's own engine in the core, meters usage."""
     tenant_id = tenant["id"]
-    # Core main.py enforces ^[A-Za-z0-9_-]{1,64}$, so we use '__' delimiter for namespacing
-    sep = "__"
-    namespaced_ref = f"{tenant_id}{sep}{body.customer_ref}" if body.customer_ref else None
 
     core_payload = {
         "text": body.text,
         "source": "core-banking",
         "sink": body.sink or "kyc-archive",
-        "customer_ref": namespaced_ref,
+        "customer_ref": body.customer_ref,
         "purpose": body.purpose or "KYC",
     }
 
-    core_res, latency_ms = call_core("POST", "/api/process", core_payload)
+    core_res, latency_ms = call_core("POST", "/api/process", core_payload, tenant_id=tenant_id)
     if "latency_ms" in core_res:
         latency_ms = core_res["latency_ms"]
 
     clean_findings = []
     by_type = {}
     prot_count = 0
-    prefix = f"{tenant_id}{sep}"
-    prefix_alt = f"{tenant_id}:"
 
-    # Safeguard 1: Strip namespace for own customer_ref; NEVER reveal other tenant's customer_ref
     for f in core_res.get("findings", []):
         fc = dict(f)
         ftyp = fc.get("type", "UNKNOWN")
         if fc.get("protected"):
             prot_count += 1
             by_type[ftyp] = by_type.get(ftyp, 0) + 1
-
-        cref = fc.get("customer_ref")
-        if cref:
-            if cref.startswith(prefix):
-                fc["customer_ref"] = cref[len(prefix):]
-            elif cref.startswith(prefix_alt):
-                fc["customer_ref"] = cref[len(prefix_alt):]
-            else:
-                # CROSS-TENANT OWNER CONFLICT: MUST NEVER REVEAL OTHER TENANT'S CUSTOMER_REF!
-                fc["customer_ref"] = None
-                fc["owner_conflict"] = True
         clean_findings.append(fc)
 
-    # Safeguard 2: Sanitize conflict notes
-    clean_notes = []
-    for note in core_res.get("notes", []):
-        if "owner_conflict" in note:
-            clean_notes.append("identifier already enrolled elsewhere; token issued under its original owner.")
-        else:
-            clean_notes.append(note)
+    clean_notes = list(core_res.get("notes", []))
 
     # Calculate counts:
     # 1. Real identifiers that were detected but not protected:
@@ -760,7 +739,7 @@ def protect(body: ProtectIn, tenant: dict = Depends(require_scope("protect"))):
         # Record issued tokens under calling tenant (if not an owner conflict)
         for fc in clean_findings:
             tok = fc.get("token")
-            if tok and not fc.get("owner_conflict"):
+            if tok:
                 c_ref = fc.get("customer_ref") or body.customer_ref
                 c_purp = fc.get("purpose") or body.purpose or "KYC"
                 c_sink = body.sink or "kyc-archive"
@@ -803,7 +782,7 @@ def gateway(body: GatewayIn, tenant: dict = Depends(require_scope("gateway"))):
     """AI Gateway forwarder for staff chatbots."""
     tenant_id = tenant["id"]
     prompt_text = body.prompt if body.prompt is not None else (body.text or "")
-    core_res, latency_ms = call_core("POST", "/api/tour/gateway", {"role": body.role, "text": prompt_text})
+    core_res, latency_ms = call_core("POST", "/api/tour/gateway", {"role": body.role, "text": prompt_text}, tenant_id=tenant_id)
 
     findings_in_prompt = core_res.get("findings_in_prompt", 0)
     by_type = {"PROMPT_PII": findings_in_prompt} if findings_in_prompt else {}
@@ -884,7 +863,7 @@ def detokenise(body: DetokeniseIn, tenant: dict = Depends(get_current_tenant)):
     purpose = row["purpose"] or "KYC"
 
     # Owned by caller: forward to Aran core
-    core_res, latency_ms = call_core("POST", "/api/detokenise", {"token": body.token, "caller": body.caller or "console"})
+    core_res, latency_ms = call_core("POST", "/api/detokenise", {"token": body.token, "caller": body.caller or "console"}, tenant_id=tenant_id)
     res_status = core_res.get("status", "ok")
 
     with conn:
@@ -911,21 +890,17 @@ def detokenise(body: DetokeniseIn, tenant: dict = Depends(get_current_tenant)):
 
 @app.post("/v1/erase")
 def erase(body: EraseIn, tenant: dict = Depends(require_scope("erase"))):
-    """Namespaces customer_ref, forwards to core /api/erase, and stores cryptographic receipt."""
+    """Forwards to the tenant's own engine, which destroys the customer's purpose key and signs a
+    receipt with the tenant's own keys; the receipt is stored here."""
     tenant_id = tenant["id"]
-    namespaced_ref = f"{tenant_id}__{body.customer_ref}"
 
     receipt, latency_ms = call_core(
         "POST",
         "/api/erase",
-        {"customer_ref": namespaced_ref, "purpose": body.purpose},
+        {"customer_ref": body.customer_ref, "purpose": body.purpose},
         admin=True,
+        tenant_id=tenant_id,
     )
-
-    # Note: receipt["event"] is cryptographically signed (Ed25519 + ML-DSA-65).
-    # We preserve the signed event intact for mathematical verification, and provide
-    # the un-namespaced customer ref on the outer response envelope.
-    receipt["tenant_customer_ref"] = body.customer_ref
 
     now_ts = time.time()
     conn = get_db()
@@ -951,8 +926,8 @@ def erase(body: EraseIn, tenant: dict = Depends(require_scope("erase"))):
 
 @app.post("/v1/receipts/verify")
 def verify_receipt(receipt: dict, tenant: dict = Depends(require_any_scope("verify", "dashboard"))):
-    """Forwards receipt verification to Aran core."""
-    res, _ = call_core("POST", "/api/receipts/verify", receipt)
+    """Verifies a receipt against the calling tenant's own signing key."""
+    res, _ = call_core("POST", "/api/receipts/verify", receipt, tenant_id=tenant["id"])
     return res
 
 
@@ -960,7 +935,7 @@ def verify_receipt(receipt: dict, tenant: dict = Depends(require_any_scope("veri
 def trace(body: TraceIn, tenant: dict = Depends(require_any_scope("trace", "dashboard"))):
     """Forwards dump trace to Aran core, reporting only tokens owned by the calling tenant."""
     tenant_id = tenant["id"]
-    core_res, latency_ms = call_core("POST", "/api/trace", {"dump": body.dump})
+    core_res, latency_ms = call_core("POST", "/api/trace", {"dump": body.dump}, tenant_id=tenant_id)
 
     conn = get_db()
     caller_tokens = {
@@ -1088,7 +1063,7 @@ def get_dashboard(tenant: dict = Depends(require_scope("dashboard"))):
 
     return {
         "tenant": tenant,
-        "preview_notice": "Aran Cloud (preview): separate keys, namespaces, metering and dashboards. Per-tenant engines and persistent vault storage are the next milestone.",
+        "isolation": "Each workspace has its own engine, vault, token index, Merkle log and signing keys.",
         "metrics": {
             "identifiers_protected": total_protected,
             "passed_unprotected": total_unprotected,
@@ -1343,9 +1318,9 @@ def get_sample_dump(tenant: dict = Depends(require_scope("dashboard"))):
 
 
 @app.get("/v1/public-keys")
-def get_public_keys():
-    """Returns the Aran Core hybrid post-quantum public keys (Ed25519 & ML-DSA-65)."""
-    res, _ = call_core("GET", "/api/public-keys")
+def get_public_keys(tenant: dict = Depends(get_current_tenant)):
+    """Returns the calling tenant's own hybrid public keys (Ed25519 & ML-DSA-65) and key_id."""
+    res, _ = call_core("GET", "/api/public-keys", tenant_id=tenant["id"])
     return res
 
 

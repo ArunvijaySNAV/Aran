@@ -231,7 +231,7 @@ class PurposeVault:
                 self.store.save_owner(k, customer_ref)
         for p in PURPOSES:
             k = (customer_ref, p)
-            if k not in self.keys:
+            if k not in self.keys and k not in self.destroyed:  # an erased purpose is never re-keyed
                 key_bytes = secrets.token_bytes(32)
                 self.keys[k] = bytearray(key_bytes)
                 event = dict(event="KEY_CREATED", customer=customer_ref, purpose=p, at=round(self.clock(), 3))
@@ -314,7 +314,7 @@ class PurposeVault:
         idx = self.log.append(event)
         size = len(self.log.leaves)
         body = dict(event=event, leaf_index=idx, tree_size=size, root=_b64(self.log.root(size)),
-                    proof=[_b64(p) for p in self.log.proof(idx, size)])
+                    proof=[_b64(p) for p in self.log.proof(idx, size)], key_id=self.key_id)
         if self.signer is None:  # legacy Ed25519-only receipt
             sig = self.sk.sign(json.dumps(body, sort_keys=True, separators=(",", ":")).encode())
             receipt = dict(body, signature=_b64(sig), public_key=self.public_key_pem())
@@ -332,6 +332,12 @@ class PurposeVault:
             self.store.checkpoint_and_truncate()
         return receipt
 
+    @property
+    def key_id(self):
+        """Stable id of this vault's signing key (derived from the Ed25519 public key)."""
+        raw = self.sk.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
+        return "k_" + hashlib.sha256(raw).hexdigest()[:16]
+
     def public_key_pem(self):
         return self.sk.public_key().public_bytes(serialization.Encoding.PEM,
                                                  serialization.PublicFormat.SubjectPublicKeyInfo).decode()
@@ -342,7 +348,8 @@ def verify_receipt(receipt, require_pq=False) -> dict:
 
     require_pq=True rejects Ed25519-only receipts; turn it on once Ed25519 can no longer be
     trusted on its own (or for receipts dated after the bank's migration)."""
-    fields = ("event", "leaf_index", "tree_size", "root", "proof") + (("alg",) if "alg" in receipt else ())
+    fields = ("event", "leaf_index", "tree_size", "root", "proof") + (("key_id",) if "key_id" in receipt else ()) \
+        + (("alg",) if "alg" in receipt else ())
     body = {k: receipt[k] for k in fields}
     msg = json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
     pq = None

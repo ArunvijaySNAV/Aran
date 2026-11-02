@@ -80,3 +80,17 @@ All need `X-Aran-Internal` when the secret is set. `*` = also needs `X-Admin-Tok
 ## Global state that Phase 2 must move per-tenant
 
 Single `ENG` engine; module-level `_GW` (gateway + audit) in `engine.py`; arena/ledger state in `standout.py` (`LEDGER` etc.); one Merkle log, one signer, one `ff1_key`, one `registry`, one store. The core also seeds `n_customers` (default 25) synthetic customers and starts an immune-learning replay thread on boot.
+
+## Phase 2 notes (what changed vs the prototype, and what to know)
+
+- `core/tenants.py` `TenantManager`: one `Engine` per tenant (LRU, `ARAN_TENANT_CACHE`, default 32; in-flight engines are pinned, never closed under a request). Files: `data/tenants/<tenant_id>/{aran.db,keys.db}` (`ARAN_DATA_DIR` / `ARAN_TENANTS_DIR`). Per-tenant KEK = HKDF(`ARAN_MASTER_KEY`, salt=tenant_id, info=`aran-tenant-kek-v1`).
+- Core middleware: `X-Aran-Tenant` accepted only after `X-Aran-Internal` verifies (401 otherwise); missing/invalid tenant id → 400 (ids are `[A-Za-z0-9_-]{1,64}`, so no path traversal). `/api/health` is open.
+- Detector pickle is loaded once and shared; because the CRF tagger holds per-call state, `Detector.scan` takes a process-wide lock (`_SharedModelDetector`). Cross-tenant scans therefore serialise; scan time is ~1 ms.
+- Removed `tenantid__` prefixing and every `owner_conflict` flag/note. Within one tenant, an identifier already owned by another `customer_ref` is still tokenised under its first owner (silently).
+- Moved module globals into the engine: AI gateway + audit (`Engine.gw`), arena/leakage-ledger state (`Engine.standout`), Merkle log, signer, FF1 key, registries.
+- Receipts now carry a signed `key_id` (`k_` + SHA-256(Ed25519 pub)[:16]). `/v1/receipts/verify` additionally checks the receipt was signed by the **calling tenant's** key (a self-consistent receipt from another tenant is reported invalid). `/v1/public-keys` now requires a key and returns the calling tenant's keys.
+- Fixed a prototype bug found while testing restart: `PurposeVault.enroll` re-created a key for an already-erased (customer, purpose) after a restart (erased customers could be resurrected). It now skips destroyed purposes. Engines also rehydrate vault-only customers after a restart.
+- Tenant engines do not keep raw text in the in-memory event ring (`keep_plaintext=False`), do not replay synthetic traffic, and start with 0 synthetic customers. Core demo routes that need synthetic customers (`/api/tour/*` except gateway, arena, ledger, versus) are not meaningful for tenant engines.
+- Added sinks `crm` (Service) and `ai-gateway` (Service, 0.3) to `E.SINKS` for the bank (Phase 5).
+- Immune-layer state is in memory per tenant (not persisted); an evicted engine loses it.
+- uvicorn must run with `--no-proxy-headers` (found by test): otherwise uvicorn rewrites `request.client.host` from `X-Forwarded-For` for loopback peers, which is exactly what a Cloudflare tunnel connection is.

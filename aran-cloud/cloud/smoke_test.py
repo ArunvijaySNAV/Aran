@@ -31,7 +31,7 @@ if not INTERNAL_SECRET:
 
 
 def get_core_headers():
-    h = {}
+    h = {"X-Aran-Tenant": "ops-fixtures"}  # generators only; not a customer workspace
     if INTERNAL_SECRET:
         h["X-Aran-Internal"] = INTERNAL_SECRET
     return h
@@ -94,7 +94,7 @@ def main():
     assert_eq(r_bad_key.status_code, 401, "Invalid key rejected with 401")
 
     # 4. Protect write path
-    print_step(4, "Protect customer PII (POST /v1/protect with namespacing)")
+    print_step(4, "Protect customer PII (POST /v1/protect per-tenant engine)")
     sample = requests.get(f"{CORE_URL}/api/tour/generate", headers=get_core_headers(), timeout=5).json()
     aadhaar = sample["aadhaar"]
     card = sample["card"]
@@ -125,7 +125,7 @@ def main():
     assert_true(dash["metrics"]["identifiers_protected"] >= 2, "Protected count >= 2")
     assert_eq(dash["metrics"]["requests_this_month"], 1, "Requests count == 1")
     assert_true(dash["metrics"]["p95_ms"] > 0, f"p95 latency computed: {dash['metrics']['p95_ms']}ms")
-    assert_true("Aran Cloud (preview)" in dash["preview_notice"], "Preview disclaimer present")
+    assert_true("own engine" in dash["isolation"], "Per-workspace isolation statement present")
 
     # 6. Two-tenant isolation safeguard
     print_step(6, "Verify cross-tenant owner isolation safeguard (zero customer_ref leakage)")
@@ -144,10 +144,10 @@ def main():
     }, timeout=10).json()
 
     f_aad2 = next(f for f in r_prot2["findings"] if f["type"] == "AADHAAR")
-    assert_eq(f_aad2["customer_ref"], None, "Tenant Beta customer_ref is None (NEVER reveals Tenant 1 ref)")
-    assert_true(f_aad2["owner_conflict"], "Owner conflict flag is True")
-    assert_true(any("identifier already enrolled elsewhere" in n for n in r_prot2.get("notes", [])),
-                "Clean isolation note present")
+    assert_eq(f_aad2["customer_ref"], "CUST-BETA-CONFIDENTIAL", "Tenant Beta owns its own customer_ref for the same Aadhaar")
+    assert_true("owner_conflict" not in f_aad2, "No owner_conflict flag exists any more")
+    assert_true(not any("enrolled" in n for n in r_prot2.get("notes", [])), "No ownership hint in notes")
+    assert_true(f_aad2["token"] != tok_aadhaar, "Same Aadhaar tokenises independently in Beta")
 
     # Confirm Tenant 2 dashboard contains ZERO events from Tenant 1
     dash_t2 = requests.get(f"{CLOUD_URL}/v1/dashboard", headers={"X-API-Key": key_t2}, timeout=5).json()
@@ -184,7 +184,7 @@ def main():
     assert_eq(r_alpha_trace["top"]["sink"], "kyc-archive", "Tenant Alpha trace correctly identifies 'kyc-archive' sink")
 
     # 8. Vaultless Token Co-Ownership Across Tenants (Requirement 4a)
-    print_step(8, "Vaultless FF1 token co-ownership across tenants (Alpha & Beta)")
+    print_step(8, "Vaultless FF1 tokens are per-tenant (Alpha & Beta)")
     sample_vaultless = requests.get(f"{CORE_URL}/api/tour/generate", headers=get_core_headers(), timeout=5).json()["aadhaar"]
 
     # Alpha protects Aadhaar with NO customer_ref (vaultless)
@@ -203,7 +203,7 @@ def main():
         "purpose": "KYC"
     }, timeout=10).json()
     tok_vb = next(f for f in r_vb["findings"] if f["type"] == "AADHAAR")["token"]
-    assert_eq(tok_vb, tok_va, "Both tenants received identical deterministic vaultless token string")
+    assert_true(tok_vb != tok_va, "Tenants receive different vaultless tokens for the same Aadhaar (own FF1 keys)")
 
     # Both can trace their own vaultless token
     dump_vaultless = f"CONFIDENTIAL LEAK:\nrecord: token={tok_va} sink=kyc-archive"
@@ -211,7 +211,10 @@ def main():
     assert_true(r_trace_va["matched"] >= 1, "Alpha matches its own vaultless token in trace")
     assert_eq(r_trace_va["top"]["sink"], "kyc-archive", "Alpha trace identifies correct sink")
 
-    r_trace_vb = requests.post(f"{CLOUD_URL}/v1/trace", headers={"X-API-Key": key_t2}, json={"dump": dump_vaultless}, timeout=5).json()
+    r_cross = requests.post(f"{CLOUD_URL}/v1/trace", headers={"X-API-Key": key_t2}, json={"dump": dump_vaultless}, timeout=5).json()
+    assert_eq(r_cross["matched"], 0, "Beta cannot trace Alpha's vaultless token")
+    dump_vaultless_b = f"CONFIDENTIAL LEAK:\nrecord: token={tok_vb} sink=kyc-archive"
+    r_trace_vb = requests.post(f"{CLOUD_URL}/v1/trace", headers={"X-API-Key": key_t2}, json={"dump": dump_vaultless_b}, timeout=5).json()
     assert_true(r_trace_vb["matched"] >= 1, "Beta matches its own vaultless token in trace")
     assert_eq(r_trace_vb["top"]["sink"], "kyc-archive", "Beta trace identifies correct sink")
 
@@ -284,7 +287,8 @@ def main():
     assert_eq(r_erase.status_code, 200, "Erasure status")
     receipt = r_erase.json()
     assert_eq(receipt["alg"], "Ed25519+ML-DSA-65", "Receipt algorithm")
-    assert_eq(receipt["tenant_customer_ref"], cust_ref, "Receipt outer customer ref un-namespaced")
+    assert_eq(receipt["event"]["customer"], cust_ref, "Receipt event carries the tenant's own customer ref")
+    assert_true(receipt.get("key_id"), "Receipt carries key_id")
 
     # Verify receipt via /v1/receipts/verify
     r_ver = requests.post(f"{CLOUD_URL}/v1/receipts/verify", headers={"X-API-Key": api_key}, json=receipt, timeout=5).json()

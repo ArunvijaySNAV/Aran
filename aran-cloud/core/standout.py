@@ -35,7 +35,28 @@ def eng():
 # The broadest decoder in the repo (number words, look-alike letters, double escapes). It is only
 # used to check that a player really hid the challenge number, never to protect anything.
 CHECKER = Normaliser(number_words=True, lookalikes=True, double_escapes=True)
-ARENA = dict(challenge=None, attempts=deque(maxlen=200), caught=0, slipped=0, unverified=0, players=set())
+
+
+def _new_arena():
+    return dict(challenge=None, attempts=deque(maxlen=200), caught=0, slipped=0, unverified=0, players=set())
+
+
+class _Arena:
+    """Per-engine arena state, so one tenant's game never touches another's."""
+    def _d(self):
+        return eng().standout.setdefault("arena", _new_arena())
+
+    def __getitem__(self, k):
+        return self._d()[k]
+
+    def __setitem__(self, k, v):
+        self._d()[k] = v
+
+    def update(self, *a, **kw):
+        self._d().update(*a, **kw)
+
+
+ARENA = _Arena()
 KINDS = {"AADHAAR": "Aadhaar", "CARD": "Card", "MOBILE": "Mobile"}
 
 
@@ -202,15 +223,28 @@ def versus_run(body: VersusIn):
 # Trust domains: sinks that can join their data. "acme" is one vendor running two systems.
 DOMAINS = {"acme-crm": ["acme"], "acme-collections": ["acme"], "acme-analytics": ["acme"],
            "loan-vendor": ["lenders"], "partner-bank": ["lenders"]}
-LEDGER = {}
+class _Ledger:
+    """Per-engine leakage-ledger state (see _ledger)."""
+    def _d(self):
+        return eng().standout.setdefault("ledger", {})
+
+    def __getitem__(self, k):
+        return self._d()[k]
+
+    def clear(self):
+        self._d().clear()
+
+
+LEDGER = _Ledger()
 
 
 def _ledger():
-    if "l" not in LEDGER:
-        LEDGER["l"] = LeakageLedger(secrets.token_bytes(32), domains=DOMAINS)
-        LEDGER["naive"] = {}  # what a per-field masker would have shown each domain (for comparison)
-        LEDGER["log"] = []
-    return LEDGER["l"]
+    d = eng().standout.setdefault("ledger", {})
+    if "l" not in d:
+        d["l"] = LeakageLedger(secrets.token_bytes(32), domains=DOMAINS)
+        d["naive"] = {}  # what a per-field masker would have shown each domain (for comparison)
+        d["log"] = []
+    return d["l"]
 
 
 class DiscloseIn(BaseModel):

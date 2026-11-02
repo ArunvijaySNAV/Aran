@@ -22,7 +22,7 @@ if not INTERNAL_SECRET:
 
 
 def get_core_headers():
-    h = {}
+    h = {"X-Aran-Tenant": "ops-fixtures"}  # generators only; not a customer workspace
     if INTERNAL_SECRET:
         h["X-Aran-Internal"] = INTERNAL_SECRET
     return h
@@ -255,26 +255,8 @@ def verify_sink_traceability(api_key, tokens_by_sink):
 
 
 def ensure_immune_watching():
-    headers = get_core_headers()
-    try:
-        r = requests.get(f"{CORE_URL}/api/immune", headers=headers, timeout=3)
-        if r.status_code == 200:
-            state = r.json().get("state", {})
-            mode = state.get("mode")
-            if mode == "watching":
-                print("  ✔ Immune layer active in watching mode")
-                return
-            if mode == "idle":
-                requests.post(f"{CORE_URL}/api/replay/start", headers=headers, json={"rate": 5.0}, timeout=3)
-                requests.post(f"{CORE_URL}/api/immune/learn", headers=headers, json={"seconds": 45}, timeout=3)
-            for _ in range(55):
-                time.sleep(1)
-                r = requests.get(f"{CORE_URL}/api/immune", headers=headers, timeout=3)
-                if r.status_code == 200 and r.json().get("state", {}).get("mode") == "watching":
-                    print("  ✔ Immune layer transitioned to watching mode")
-                    return
-    except Exception as e:
-        print(f"  Notice: immune layer check: {e}")
+    """Immune learning is a core-console feature; tenant engines do not replay synthetic traffic."""
+    print("  (immune layer is not part of tenant workspaces; skipped)")
 
 
 def main():

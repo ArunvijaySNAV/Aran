@@ -13,36 +13,65 @@ from pydantic import BaseModel, Field
 
 import engine as E
 
-app = FastAPI(title="Aran console API", version="1.0")
+app = FastAPI(title="Aran console API", version="2.0")
+
+import contextvars  # noqa: E402
+from starlette.concurrency import run_in_threadpool  # noqa: E402
+from tenants import TenantManager, valid_tenant_id  # noqa: E402
+
+_TENANT = contextvars.ContextVar("aran_tenant", default=None)
+TM = None
+READY = threading.Event()
+LOAD_ERROR = None
+OPEN_PATHS = {"/api/health"}
 
 
 @app.middleware("http")
-async def check_internal_secret(request: Request, call_next):
+async def tenant_gate(request: Request, call_next):
+    """Authenticates the cloud (X-Aran-Internal) and selects the tenant (X-Aran-Tenant). The tenant
+    header is honoured only when the internal secret checks out; no tenant -> 400."""
+    path = request.url.path
+    if path in OPEN_PATHS:
+        return await call_next(request)
     internal_secret = os.environ.get("ARAN_INTERNAL_SECRET")
     if internal_secret:
-        path = request.url.path
-        if path != "/api/health":
-            provided = request.headers.get("X-Aran-Internal") or ""
-            if not hmac.compare_digest(provided, internal_secret):
-                return JSONResponse(
-                    status_code=401,
-                    content={"detail": "Unauthorized: missing or invalid X-Aran-Internal header."},
-                )
-    return await call_next(request)
+        provided = request.headers.get("X-Aran-Internal") or ""
+        if not hmac.compare_digest(provided, internal_secret):
+            return JSONResponse(status_code=401,
+                                content={"detail": "Unauthorized: missing or invalid X-Aran-Internal header."})
+    tid = request.headers.get("X-Aran-Tenant")
+    if not tid:
+        return JSONResponse(status_code=400, content={"detail": "X-Aran-Tenant header is required."})
+    if not valid_tenant_id(tid):
+        return JSONResponse(status_code=400, content={"detail": "X-Aran-Tenant is not a valid tenant id."})
+    if not READY.is_set():
+        return JSONResponse(status_code=503, content={"detail": LOAD_ERROR or "Aran is loading its models, try again in a few seconds"})
+    try:
+        await run_in_threadpool(TM.acquire, tid)
+    except Exception as err:
+        return JSONResponse(status_code=503, content={"detail": f"tenant engine unavailable: {type(err).__name__}"})
+    token = _TENANT.set(tid)
+    try:
+        return await call_next(request)
+    finally:
+        _TENANT.reset(token)
+        TM.release(tid)
 
 
-ENG = None
-READY = threading.Event()
-LOAD_ERROR = None
+def _data_dir():
+    return os.environ.get("ARAN_DATA_DIR") or os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data"))
 
 
 def _load():
-    global ENG, LOAD_ERROR
+    global TM, LOAD_ERROR
     try:
-        ENG = E.Engine(n_customers=int(os.environ.get("ARAN_CUSTOMERS", "25")))
+        base = E.load_base()
+        TM = TenantManager(os.environ.get("ARAN_TENANTS_DIR") or os.path.join(_data_dir(), "tenants"),
+                           os.environ.get("ARAN_MASTER_KEY"),
+                           capacity=int(os.environ.get("ARAN_TENANT_CACHE", "32")), base=base)
         READY.set()
         while True:
-            ENG.immune.tick()
+            TM.tick()
             time.sleep(1.0)
     except Exception as e:  # surfaced on /api/health
         LOAD_ERROR = repr(e)
@@ -58,17 +87,29 @@ def startup():
     threading.Thread(target=_load, daemon=True).start()
 
 
+@app.on_event("shutdown")
+def shutdown():
+    if TM is not None:
+        TM.close()
+
+
 def eng():
+    """The calling tenant's engine (selected by the tenant_gate middleware)."""
     if not READY.is_set():
         raise HTTPException(503, LOAD_ERROR or "Aran is loading its models, try again in a few seconds")
-    return ENG
+    tid = _TENANT.get()
+    if tid is None:
+        raise HTTPException(400, "X-Aran-Tenant header is required.")
+    e = TM.peek(tid)
+    if e is None:
+        raise HTTPException(503, "tenant engine unavailable")
+    return e
 
 
 def _check_admin(token_header: str | None):
     admin_token = os.environ.get("ARAN_ADMIN_TOKEN")
     if admin_token and token_header != admin_token:
         raise HTTPException(401, "unauthorized")
-
 
 
 # ---------------------------------------------------------------- models
@@ -218,10 +259,23 @@ def erase(body: EraseIn, x_admin_token: str | None = Header(None)):
 
 @app.post("/api/receipts/verify")
 def verify(receipt: dict):
+    """Verifies a receipt, and that it was signed by THIS tenant's key (a receipt that is
+    internally valid but carries another tenant's key does not verify)."""
+    e = eng()
     try:
-        return E.verify_receipt(receipt)
+        res = E.verify_receipt(receipt)
     except Exception as err:
         return dict(valid=False, signature_valid=False, included_in_log=False, error=str(err))
+    pub = e.vault.signer.public() if e.vault.signer is not None else None
+    if pub is not None:
+        ours = receipt.get("public_key") == pub["ed25519"] and receipt.get("pq_public_key") == pub["ml_dsa_65"]
+    else:
+        ours = receipt.get("public_key") == e.vault.public_key_pem()
+    res = dict(res, signer_is_this_tenant=ours, key_id=receipt.get("key_id"))
+    if not ours:
+        res["valid"] = False
+        res["error"] = "receipt was not signed by this workspace's key"
+    return res
 
 
 @app.get("/api/public-keys")
@@ -234,24 +288,13 @@ def public_keys():
             return dict(
                 alg=pub["alg"],
                 context=e.vault.signer.context.decode("ascii", errors="ignore"),
-                public_keys=dict(
-                    ed25519=pub["ed25519"],
-                    ml_dsa_65=pub["ml_dsa_65"],
-                ),
+                public_keys=dict(ed25519=pub["ed25519"], ml_dsa_65=pub["ml_dsa_65"]),
                 created_at=e.started,
-                key_id="aran-signer-primary",
+                key_id=e.vault.key_id,
                 backup_policy=E.BACKUP_POLICY_STATEMENT,
             )
-        else:
-            return dict(
-                alg="Ed25519",
-                public_keys=dict(
-                    ed25519=e.vault.public_key_pem(),
-                ),
-                created_at=e.started,
-                key_id="aran-signer-primary",
-                backup_policy=E.BACKUP_POLICY_STATEMENT,
-            )
+        return dict(alg="Ed25519", public_keys=dict(ed25519=e.vault.public_key_pem()), created_at=e.started,
+                    key_id=e.vault.key_id, backup_policy=E.BACKUP_POLICY_STATEMENT)
 
 
 @app.get("/api/merkle")

@@ -34,7 +34,8 @@ def get_internal_secret():
 
 def get_sample_pii():
     secret = get_internal_secret()
-    r = requests.get(f"{CORE_URL}/api/tour/generate", headers={"X-Aran-Internal": secret}, timeout=5)
+    r = requests.get(f"{CORE_URL}/api/tour/generate",
+                     headers={"X-Aran-Internal": secret, "X-Aran-Tenant": "test-fixtures"}, timeout=5)
     r.raise_for_status()
     return r.json()
 
@@ -340,7 +341,7 @@ def test_core_lockdown():
     assert r_process.status_code == 401
 
     # 3. Direct core calls with valid X-Aran-Internal succeed
-    r_stats_authed = requests.get(f"{CORE_URL}/api/stats", headers={"X-Aran-Internal": internal_secret})
+    r_stats_authed = requests.get(f"{CORE_URL}/api/stats", headers={"X-Aran-Internal": internal_secret, "X-Aran-Tenant": "test-fixtures"})
     assert r_stats_authed.status_code == 200
 
     # 4. Calls forwarded through Aran Cloud still work

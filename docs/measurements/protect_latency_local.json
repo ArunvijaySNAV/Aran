@@ -1,0 +1,22 @@
+{
+  "endpoint": "/v1/protect",
+  "payload": "name+Aadhaar+mobile+card+PAN (5 fields, enrolled customer_ref)",
+  "n": 120,
+  "client_ms": {
+    "p50": 6.7,
+    "p95": 8.6,
+    "mean": 6.9
+  },
+  "core_ms": {
+    "p50": 1.0,
+    "p95": 1.2
+  },
+  "fields_protected": {
+    "of": 5,
+    "min": 4,
+    "mean": 4.95,
+    "requests_with_all_5": 114
+  },
+  "measured_at": "2026-11-03 00:40:59",
+  "path": "client -> cloud(8100) -> core(8000), localhost, sequential"
+}

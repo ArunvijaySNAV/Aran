@@ -55,6 +55,8 @@ SINKS = {
     "llm-gateway": ("Service", 0.3),
     "marketing-cloud": ("Marketing", 0.5),
     "kyc-archive": ("KYC", 0.5),
+    "crm": ("Service", 0.5),
+    "ai-gateway": ("Service", 0.3),
 }
 # normal traffic the replay sends: (source system, sink, Loghub systems whose real lines it carries)
 REPLAY_PAIRS = [
@@ -80,15 +82,56 @@ ID_RX = re.compile(r"(?<![0-9A-Za-z])(\d{16}|\d{12})(?![0-9A-Za-z])")
 PSEUDO_RX = re.compile(r"<(?!OTP:destroyed)[A-Z]+:[0-9a-z\-]+>")
 
 
+_BASE = {}
+_BASE_LOCK = threading.Lock()
+# The shared CRF tagger keeps per-call state, so scans from different tenants take turns.
+_MODEL_LOCK = threading.RLock()
+
+
+def load_base(path=None):
+    """The trained detector (NER, OTP/UPI classifiers, stack, iso), unpickled once per process and
+    shared read-only by every engine."""
+    path = path or MODELS
+    with _BASE_LOCK:
+        if path not in _BASE:
+            with open(path, "rb") as fh:
+                _BASE[path] = pickle.load(fh)
+        return _BASE[path]
+
+
+class _SharedModelDetector(Detector):
+    def scan(self, *a, **kw):
+        with _MODEL_LOCK:
+            return super().scan(*a, **kw)
+
+
+_LOGS = {}
+_LOGS_LOCK = threading.Lock()
+
+
+def load_logs():
+    """Loghub replay lines, read once per process."""
+    with _LOGS_LOCK:
+        if not _LOGS:
+            for f in sorted(glob.glob(os.path.join(LOGS_DIR, "*_2k.log"))):
+                with open(f, errors="replace") as fh:
+                    _LOGS[os.path.basename(f)[:-7]] = fh.read().splitlines()
+        return _LOGS
+
+
 def _p95(xs):
     return round(float(np.percentile(xs, 95)), 1) if xs else None
 
 
 class Engine:
-    def __init__(self, n_customers=25, seed=None, store_path=None, master_key=None):
+    def __init__(self, n_customers=25, seed=None, store_path=None, master_key=None, base=None, auto_learn=True,
+                 tenant_id=None):
         t0 = time.time()
-        with open(MODELS, "rb") as fh:
-            base = pickle.load(fh)
+        base = base or load_base()
+        self.tenant_id = tenant_id
+        self.keep_plaintext = True  # tenant engines turn this off: no raw text kept in the in-memory event ring
+        self.standout = {}   # per-engine state of the demo features (arena, leakage ledger)
+        self.gw = None       # per-engine AI gateway, built on first use
 
         # Persistence Lite support
         store_path = store_path or os.environ.get("ARAN_STORE")
@@ -105,7 +148,7 @@ class Engine:
 
         self.registry = CustomerRegistry(secrets.token_bytes(32), capacity=100_000)
         self.otp_registry = OtpRegistry(secrets.token_bytes(32), ttl=300.0)
-        self.det = Detector(base.ner, base.otp_clf, base.upi_clf, normaliser=Normaliser(),
+        self.det = _SharedModelDetector(base.ner, base.otp_clf, base.upi_clf, normaliser=Normaliser(),
                             registry=self.registry, otp_registry=self.otp_registry)
         self.det.stack, self.det.iso = base.stack, base.iso
         self.vault = PurposeVault(store=self.store)
@@ -150,11 +193,17 @@ class Engine:
                     masked = json.loads(prof["masked_json"])
                     self.customers[ref] = dict(ref=ref, name=prof["name"], upi=prof["upi"], created=prof["created"], _erased=True, **masked)
 
+            # customers known only through the vault (enrolled by customer_ref alone) survive a restart too
+            known = {c for (c, _p) in self.vault.keys} | {c for (c, _p) in self.vault.destroyed}
+            for ref in sorted(known - set(self.customers)):
+                self.dynamic_customers.add(ref)
+                self.customers[ref] = dict(ref=ref, name=ref, created=time.time())
+
         if not self.customers:
             for _ in range(n_customers):
                 self.add_customer()
         self.load_seconds = round(time.time() - t0, 1)
-        if self.replay.logs:
+        if auto_learn and self.replay.logs:
             def _auto_learn():
                 secs = int(os.environ.get("ARAN_LEARN_SECONDS", "75"))
                 self.immune.start_learning(secs)
@@ -268,8 +317,6 @@ class Engine:
                     self.vault.enroll(customer_ref, {})
                     self.customers[customer_ref] = dict(ref=customer_ref, name=customer_ref, created=time.time())
             t0 = time.perf_counter()
-            self.fw.conflicts = set()
-            self.fw.conflict_notes = []
             self.fw._current_customer_ref = customer_ref
             self.fw._current_purpose = purpose
             try:
@@ -309,7 +356,6 @@ class Engine:
                 else:
                     fd["customer_ref"] = None
                     fd["purpose"] = None
-                fd["owner_conflict"] = fd["start"] in self.fw.conflicts
             raw_left = sum(1 for f in findings if not f["protected"])
             owners = {self.vault.owner_of(f["type"], text[f["start"]:f["end"]]) for f in findings}
             owners.discard(None)
@@ -322,7 +368,7 @@ class Engine:
                 self.counts["values_raw"] += raw_left
                 for f in findings:
                     self.by_type[f["type"]] += 1
-            notes = list(self.fw.conflict_notes)
+            notes = []
             for m in re.finditer(r"(?<!\d)(?<!\d\.)(?:\d[ -]?){9,15}\d(?!\d|\.\d)", text):
                 raw_seq = m.group(0)
                 d = re.sub(r"\D", "", raw_seq)
@@ -348,7 +394,7 @@ class Engine:
                       latency_ms=round(ms, 2), findings=findings, notes=notes, bypass=sink in self.bypass, trace_id=trace_id)
             self.sink_store[sink].append(out)
             if record:
-                self.events.appendleft(ev)
+                self.events.appendleft(ev if self.keep_plaintext else dict(ev, before="[not retained]"))
             return ev
 
     # ------------------------------------------------------------ detokenise, erase
@@ -439,6 +485,9 @@ class Engine:
                         merkle_size=len(self.vault.log.leaves), uptime_s=round(time.time() - self.started),
                         immune=self.immune.state, replay=self.replay.status(), model_load_seconds=self.load_seconds)
 
+    def key_id(self):
+        return self.vault.key_id
+
     def close(self):
         """Clean shutdown of background threads and persistent database connections."""
         if hasattr(self, "replay") and getattr(self.replay, "running", False):
@@ -458,8 +507,6 @@ class _IndexingFirewall(PurposeFirewall):
             self.index.update(self.eng.store.load_all_token_sinks())
         self._current_purpose = None
         self._current_customer_ref = None
-        self.conflicts = set()
-        self.conflict_notes = []
 
     def _replace(self, f, value, sink, purpose=None):
         purpose = purpose or self._current_purpose
@@ -472,11 +519,6 @@ class _IndexingFirewall(PurposeFirewall):
                     self.vault.store.save_owner(k, self._current_customer_ref)
                 if self.eng and self._current_customer_ref in self.eng.customers:
                     self.eng.customers[self._current_customer_ref][f.type] = value
-            elif existing_owner != self._current_customer_ref:
-                self.conflicts.add(f.start)
-                note = "owner_conflict: this identifier is already enrolled under another customer; token issued under the original owner."
-                if note not in self.conflict_notes:
-                    self.conflict_notes.append(note)
         tok = super()._replace(f, value, sink, purpose=purpose)
         if tok not in ("<OTP:destroyed>",) and "withheld" not in tok:
             self.index[tok] = sink
@@ -611,9 +653,7 @@ class Replay:
 
     def __init__(self, eng):
         self.eng = eng
-        self.logs = {}
-        for f in sorted(glob.glob(os.path.join(LOGS_DIR, "*_2k.log"))):
-            self.logs[os.path.basename(f)[:-7]] = open(f, errors="replace").read().splitlines()
+        self.logs = load_logs()
         self.running = False
         self.rate = 1.0
         self.sent = 0
@@ -905,23 +945,20 @@ def tour_immune_radar(eng):
                     next_window_in=round(WINDOW - time.time() % WINDOW, 1), window_seconds=WINDOW)
 
 
-_GW = {}
-
-
 def gateway(eng):
-    """The AI gateway (research/gateway/ai_gateway.py) on the live detector. With
+    """The AI gateway (research/gateway/ai_gateway.py) on this engine's detector. With
     ARAN_LLM_URL, ARAN_LLM_KEY and ARAN_LLM_MODEL set it calls that OpenAI-compatible
     model; otherwise the provider is the echo stand-in from the gateway's own tests,
     which repeats the prompt back, the hardest case for placeholders."""
-    if "gw" not in _GW:
+    if eng.gw is None:
         from gateway.ai_gateway import AIGateway, openai_upstream, recorder_upstream
         url = os.environ.get("ARAN_LLM_URL")
         if url:
             up, name = openai_upstream(url, os.environ.get("ARAN_LLM_KEY", ""), os.environ.get("ARAN_LLM_MODEL", "")), "model at ARAN_LLM_URL"
         else:
             up, name = recorder_upstream([]), "echo stand-in (no external AI call)"
-        _GW["gw"], _GW["name"] = AIGateway(eng.det, up), name
-    return _GW["gw"], _GW["name"]
+        eng.gw = (AIGateway(eng.det, up), name)
+    return eng.gw
 
 
 def tour_gateway(eng, role, text):
