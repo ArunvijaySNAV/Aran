@@ -57,7 +57,7 @@ img, svg { max-width: 100%; }
 
 /* inputs: label above, 17px text, 8px radius, 1.5px rule border, bond fill */
 label { display: block; font-weight: 500; font-size: 15px; margin-bottom: 6px; color: var(--ink-2); }
-input[type=text], input[type=email], input[type=password], input[type=search], textarea, select { width: 100%; min-height: 46px; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--rule); background: var(--bond); color: var(--ink); font: 400 17px var(--font); }
+input[type=text], input[type=email], input[type=password], input[type=search], textarea, select { width: 100%; min-height: 46px; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--rule-strong); background: var(--bond); color: var(--ink); font: 400 17px var(--font); }
 input:focus, textarea:focus, select:focus { border-color: var(--seal); outline: 3px solid var(--seal-soft); }
 input[aria-invalid=true] { border-color: var(--attention); }
 textarea { min-height: 120px; font-family: var(--mono); font-size: 13px; resize: vertical; }
@@ -65,7 +65,7 @@ input::placeholder, textarea::placeholder { color: var(--ink-2); opacity: .8; }
 .field { margin-bottom: 16px; }
 .hint { color: var(--ink-2); font-size: 13px; margin-top: 4px; min-height: 20px; }
 .hint[role=alert] { color: var(--attention); font-weight: 500; }
-.check { display: flex; gap: 10px; align-items: flex-start; font-weight: 500; color: var(--ink); }
+.check { display: flex; gap: 10px; align-items: center; min-height: 44px; font-weight: 500; color: var(--ink); }
 .check input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--seal); flex: none; }
 
 /* panels: bond paper, 1.5px ink printed edge */
@@ -150,7 +150,8 @@ td .mono, td code { word-break: break-all; font-weight: 500; }
 .auth { min-height: calc(100vh - 64px); display: grid; place-items: center; padding: 32px 16px; }
 .auth .card { width: 100%; max-width: 480px; box-shadow: 0 0 0 1.5px var(--ink), var(--shadow); border-radius: 18px; }
 .keybox { display: flex; gap: 8px; align-items: stretch; }
-.keybox code { flex: 1; min-width: 0; padding: 10px 12px; background: var(--stock); border: 1.5px solid var(--rule); border-radius: 8px; word-break: break-all; display: flex; align-items: center; font-weight: 500; }
+@media (max-width: 480px) { .keybox { flex-direction: column; } .keybox .btn { align-self: flex-start; } }
+.keybox code { flex: 1; min-width: 0; padding: 10px 12px; background: var(--stock); border: 1.5px solid var(--rule-strong); font-variant-ligatures: none; user-select: all; border-radius: 8px; word-break: break-all; display: flex; align-items: center; font-weight: 500; }
 
 /* dialogs */
 dialog { border: 0; box-shadow: 0 0 0 1.5px var(--ink), var(--shadow); border-radius: 14px; background: var(--bond); color: var(--ink); max-width: min(520px, calc(100vw - 32px)); width: 100%; padding: 24px; }

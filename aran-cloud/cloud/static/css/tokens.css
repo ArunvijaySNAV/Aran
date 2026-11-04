@@ -5,7 +5,7 @@
 
 :root {
   /* paper and ink */
-  --stock: #E8EEEA; --bond: #F7FAF8; --ink: #0C1A2B; --ink-2: #46566B; --rule: #C5D0CA;
+  --stock: #E8EEEA; --bond: #F7FAF8; --ink: #0C1A2B; --ink-2: #46566B; --rule: #C5D0CA; --rule-strong: #76847F; /* input and control outlines, 3.7:1 on bond */
   /* meaning: the only colours that carry data-state meaning */
   --seal: #2342D6; --seal-soft: #DDE3FA; --stamp: #B3202A; --stamp-soft: #F6DCDD; --attention: #7A4A00; --attention-soft: #FBEBCB;
   /* Night world */
@@ -40,6 +40,7 @@
   --accent-soft: var(--night-token-bg); --ok: var(--night-token); --ok-weak: var(--night-token-bg);
   --warn: #F2C46B; --warn-weak: #3A2D0B; --bad: #F2C46B; --bad-weak: #3A2D0B;
   --token: var(--night-token); --token-bg: var(--night-token-bg); --raw: var(--night-raw); --raw-bg: var(--night-raw-bg);
+  --rule-strong: #6C8099; --attention: #F2C46B; --attention-soft: #3A2D0B;
   --ink: var(--night-text); --ink-2: var(--night-dim); --rule: var(--night-line); --bond: var(--night-2); --stock: var(--night);
   --seal: var(--night-token); --seal-soft: var(--night-token-bg);
   --code-bg: #070F1A; --shadow: 0 22px 40px -24px rgba(0, 0, 0, .6);

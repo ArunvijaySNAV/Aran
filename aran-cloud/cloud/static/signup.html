@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Create workspace: Aran Cloud</title>
+<title>Get an API key: Aran Cloud</title>
 <link rel="preload" href="/static/fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/css/tokens.css">
 <link rel="stylesheet" href="/static/css/system.css">
+<link rel="stylesheet" href="/static/css/signup.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -15,32 +16,55 @@
   <a class="brand" href="/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 36V19a15 15 0 0 1 30 0v17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M11 36V20a9 9 0 0 1 18 0v16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M17 36V21a3 3 0 0 1 6 0v15" fill="currentColor"/></svg>Aran</a>
   <nav class="nav" aria-label="Primary"><a href="/dashboard">Sign in</a><button class="btn sm icon-btn" data-theme-btn aria-label="Toggle dark mode">◐ Night</button></nav>
 </div></header>
-<main id="main" class="auth">
-  <div class="card">
-    <section id="form-view" aria-labelledby="h">
-      <h1 id="h" style="font-size:1.6rem">Create your workspace</h1>
-      <p class="muted">You get an isolated vault, your own signing keys and an API key. Free, no card.</p>
-      <form id="f" novalidate>
-        <div class="field"><label for="name">Company or project name</label><input id="name" name="name" type="text" autocomplete="organization" required maxlength="80"><div class="hint" id="name-err" role="alert"></div></div>
-        <div class="field"><label for="email">Work email</label><input id="email" name="email" type="email" autocomplete="email" required maxlength="120"><div class="hint" id="email-err" role="alert"></div></div>
-        <div id="form-error"></div>
-        <button class="btn primary" id="go" type="submit" style="width:100%">Create workspace</button>
-      </form>
-    </section>
-    <section id="keys-view" hidden aria-labelledby="k-h">
-      <h1 id="k-h" style="font-size:1.6rem">Save your keys now</h1>
-      <div class="banner warn" role="note"><span>They are shown once and stored only as hashes. Aran cannot show them again.</span></div>
-      <div class="stack" style="margin-top:16px">
-        <div><label>Admin key <span class="pill accent">all scopes</span></label><div class="keybox"><code id="k-admin"></code><button class="btn sm" data-copy="k-admin" type="button">Copy</button></div></div>
-        <div><label>Dashboard key <span class="pill">read-only</span></label><div class="keybox"><code id="k-dash"></code><button class="btn sm" data-copy="k-dash" type="button">Copy</button></div></div>
-        <p class="small muted">Use the admin key to mint narrower keys (app server, compliance officer) in the dashboard, then keep the admin key offline.</p>
-        <label class="check"><input type="checkbox" id="saved"> I have saved both keys</label>
-        <a class="btn primary" id="next" href="/connect" aria-disabled="true" style="width:100%;pointer-events:none;opacity:.55">Continue: connect your app</a>
-      </div>
-    </section>
+<main id="main" class="signup">
+  <div class="wrap signup-grid">
+    <div class="signup-copy">
+      <h1>Get an API key.</h1>
+      <p class="lead">Create a workspace and you get an isolated vault, your own signing keys and a key for your server. Free during the preview.</p>
+      <ul class="facts">
+        <li>Your workspace never shares a vault, token index or signing key with anyone else.</li>
+        <li>Keys are shown once and stored only as hashes.</li>
+        <li>Your first event appears in the dashboard as soon as you send it.</li>
+      </ul>
+    </div>
+
+    <div class="plate-slot">
+      <section id="form-view" class="plate signup-plate" aria-labelledby="h">
+        <div class="guil-wrap" aria-hidden="true"><svg viewBox="-260 -260 520 520" data-rosette fill="none" stroke="currentColor" stroke-width=".55"></svg></div>
+        <h2 id="h">Create your workspace</h2>
+        <form id="f" novalidate>
+          <div class="field"><label for="name">Company or project name</label><input id="name" name="name" type="text" autocomplete="organization" required maxlength="80" aria-describedby="name-err"><div class="hint" id="name-err" role="alert"></div></div>
+          <div class="field"><label for="email">Work email</label><input id="email" name="email" type="email" autocomplete="email" required maxlength="120" aria-describedby="email-err"><div class="hint" id="email-err" role="alert"></div></div>
+          <div id="form-error"></div>
+          <button class="btn primary" id="go" type="submit" style="width:100%">Create workspace</button>
+        </form>
+        <p class="after">Already have a key? <a href="/dashboard">Sign in</a></p>
+      </section>
+
+      <section id="keys-view" class="slip" hidden aria-labelledby="k-h">
+        <div class="band"><svg viewBox="0 0 600 34" preserveAspectRatio="none" data-band fill="none" stroke="currentColor" stroke-width=".6" aria-hidden="true"></svg></div>
+        <div class="slip-body">
+          <div class="slip-head">
+            <h2 id="k-h">Save your keys now</h2>
+            <svg class="seal" viewBox="0 0 150 150" aria-hidden="true" fill="none" stroke="currentColor"><circle cx="75" cy="75" r="70" stroke-width="3"/><circle cx="75" cy="75" r="56" stroke-width="1" stroke-dasharray="2 4"/><path d="M48 77l19 19 36-40" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="banner warn" role="note"><span>They are shown once and stored only as hashes. Aran cannot show them again.</span></div>
+          <div class="stack" style="margin-top:20px">
+            <div role="group" aria-labelledby="l-admin"><span class="kl" id="l-admin">Admin key <span class="pill accent">all scopes</span></span><div class="keybox"><code id="k-admin"></code><button class="btn sm" data-copy="k-admin" type="button" aria-label="Copy admin key">Copy</button></div></div>
+            <div role="group" aria-labelledby="l-dash"><span class="kl" id="l-dash">Dashboard key <span class="pill">read-only</span></span><div class="keybox"><code id="k-dash"></code><button class="btn sm" data-copy="k-dash" type="button" aria-label="Copy dashboard key">Copy</button></div></div>
+            <p class="small muted">Use the admin key to mint narrower keys (app server, compliance officer) in the dashboard, then keep the admin key offline.</p>
+            <label class="check"><input type="checkbox" id="saved"> I have saved both keys</label>
+            <a class="btn primary" id="next" href="/connect" aria-disabled="true" style="width:100%;pointer-events:none;opacity:.55">Continue to connect your app</a>
+            <p class="gate-note">Tick the box to continue.</p>
+          </div>
+        </div>
+        <div class="slip-sign" aria-hidden="true">Aran Cloud · workspace keys · one-time issue · Aran Cloud · workspace keys · one-time issue</div>
+      </section>
+    </div>
   </div>
 </main>
 <script src="/static/js/console.js"></script>
+<script src="/static/js/ornament.js"></script>
 <script>
 (function () {
   var f = A.$('#f'), go = A.$('#go');
