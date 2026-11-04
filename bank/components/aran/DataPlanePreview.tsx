@@ -13,7 +13,7 @@ export function DataPlanePreview() {
     <div className="p-5 sm:p-6">
       <h2 className="text-[19px] font-bold [font-stretch:100%]">What happens on submit</h2>
       <p className="mt-1 text-[14px] text-ink2">The raw values go to Aran from this server and nowhere else. Each destination gets its own tokens.</p>
-      <ol className="mt-5 space-y-3">
+      <ol className="mt-5 space-y-3 border-l-[1.5px] border-token pl-4">
         {ROWS.map((r) => (
           <li key={r.sink} className="rounded-[8px] border-[1.5px] border-rule p-3">
             <div className="flex flex-wrap items-center gap-2"><SinkPill>{r.sink}</SinkPill><span className="text-[13px] text-ink2">purpose: {r.purpose}</span></div>
@@ -21,7 +21,7 @@ export function DataPlanePreview() {
           </li>
         ))}
       </ol>
-      <p className="mt-5 text-[14px] font-semibold text-token">The database stores tokens only. If Aran cannot be reached, nothing is saved.</p>
+      <div className="mt-3 rounded-[8px] bg-tokenbg p-3 text-[14px] font-semibold text-token shadow-[inset_0_0_0_1.5px_var(--token)]">Database: tokens only. If Aran cannot be reached, nothing is saved.</div>
     </div>
   );
 }
