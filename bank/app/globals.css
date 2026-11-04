@@ -166,3 +166,9 @@ html { scroll-padding-top: 72px; color-scheme: light; }
 /* long unbroken text (names, ids, tokens) wraps instead of pushing the page sideways */
 body { overflow-wrap: break-word; }
 h1, h2, h3, p, li, label, dd, dt, summary, .edge { overflow-wrap: anywhere; min-width: 0; }
+
+/* Presenter mode (?present=1, see components/Presenter.tsx): larger type, a progress marker, the cursor hides after 3 s idle. No motion. */
+html.present body { zoom: 1.25; }
+html.present-idle, html.present-idle * { cursor: none !important; }
+.present-marker { position: fixed; left: 50%; bottom: 12px; z-index: 60; transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; background: var(--ink); color: var(--bond); font-size: 13px; font-weight: 600; pointer-events: none; }
+@media (max-width: 767.98px) { .present-marker { bottom: 72px; } }

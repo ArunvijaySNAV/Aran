@@ -171,3 +171,8 @@ body { overflow-wrap: break-word; }
 h1, h2, h3, p, li, label, dd, dt, summary { overflow-wrap: anywhere; }
 
 dialog { overscroll-behavior: contain; }
+
+/* Presenter mode (?present=1, see js/present.js): larger type, a progress marker, the cursor hides after 3 s idle. No motion. */
+html.present body { zoom: 1.25; }
+html.present-idle, html.present-idle * { cursor: none !important; }
+.present-marker { position: fixed; left: 50%; bottom: 12px; z-index: 60; transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; background: var(--ink); color: var(--bond); font-size: 13px; font-weight: 600; pointer-events: none; }

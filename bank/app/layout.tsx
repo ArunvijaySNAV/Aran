@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Presenter } from "@/components/Presenter";
 
 // Archivo is declared with @font-face + unicode-range in globals.css (latin and latin-ext, so the rupee sign renders in Archivo).
 // Martian Mono (variable width) is served from /public/fonts. Both are SIL OFL, no CDN.
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bank-ui min-h-screen antialiased">
         <a href="#content" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-ink focus:px-4 focus:py-3 focus:font-bold focus:text-white">Skip to content</a>
         {children}
+        <Presenter />
         <footer className="border-t border-rule px-4 py-5 text-center text-[13px] text-ink2">Fictional bank for demonstration. Sample data only.</footer>
       </body>
     </html>
