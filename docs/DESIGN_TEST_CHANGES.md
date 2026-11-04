@@ -24,3 +24,7 @@ None yet. `DESIGN.md` wins over any detector rule that contradicts it (guilloche
 ### Detector exceptions: connect (Screen 3)
 - `repeating-stripes-gradient` on the dashed seal line between the Sent and Stored panels (`.flight-out .demo::before`): the visible boundary of principle 2, same as the landing.
 - Copy change for honesty: the integration step is now "Add the call" (connect) and "Three steps, one call" (landing), because the shipped sample is about eight lines, not five.
+
+### Detector exceptions: dashboard (Screen 4)
+- None. `impeccable detect` returned no findings for `dashboard.html`, `app.css` or `dashboard.js`. Caveat: tabs are rendered by `dashboard.js`, so the detector sees only the shell; contrast and layout of the rendered tabs were measured in the browser instead.
+- Static markup change: `<div class="main">` became `<main class="main">` (a landmark). No id, data attribute or script-queried class changed.
