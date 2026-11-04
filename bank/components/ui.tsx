@@ -11,7 +11,7 @@ export const cn = (...a: ClassValue[]) => twMerge(clsx(a));
 const button = cva("inline-flex min-h-[46px] whitespace-nowrap items-center justify-center gap-2 rounded-[8px] px-5 py-2 text-[16px] font-bold transition-[transform,background-color] duration-150 ease-[var(--ease)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45", {
   variants: {
     variant: {
-      primary: "bg-bank text-white hover:bg-[#08463a]",
+      primary: "bg-bank text-white hover:bg-bankdeep",
       outline: "bg-transparent text-ink shadow-[inset_0_0_0_1.5px_var(--ink)] hover:bg-bond",
       danger: "bg-transparent text-ink shadow-[inset_0_0_0_1.5px_var(--ink)] hover:bg-attentionsoft",
       ghost: "bg-transparent text-ink hover:bg-bond",
@@ -27,7 +27,7 @@ export function Button({ className, variant, size, ...p }: ButtonHTMLAttributes<
 export const linkButton = (v: VariantProps<typeof button> = {}, extra?: string) => cn(button(v), "no-underline", extra);
 
 // Inputs: 17px text, radius 8, 1.5px rule border on bond; focus = bank border + soft ring; error = attention (red is reserved for raw data)
-const field = "min-h-[46px] w-full rounded-[8px] border-[1.5px] border-rulestrong bg-bond px-3 py-2.5 text-[17px] text-ink placeholder:text-ink2 placeholder:opacity-95 focus:border-bank focus:outline focus:outline-[3px] focus:outline-banksoft aria-[invalid=true]:border-attention";
+const field = "min-h-[46px] w-full rounded-[8px] border-[1.5px] border-rulestrong bg-bond px-3 py-2.5 text-[17px] text-ink placeholder:text-ink2 placeholder:opacity-95 focus-visible:border-bank focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-banksoft aria-[invalid=true]:border-attention";
 export const Input = ({ className, ...p }: InputHTMLAttributes<HTMLInputElement>) => <input spellCheck={false} autoComplete="off" className={cn(field, className)} {...p} />;
 export const Textarea = ({ className, ...p }: TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea autoComplete="off" className={cn(field, "min-h-28", className)} {...p} />;
 export const Select = ({ className, ...p }: SelectHTMLAttributes<HTMLSelectElement>) => <select className={cn(field, className)} {...p} />;
@@ -93,7 +93,7 @@ export function Table({ head, children, label }: { head: string[]; children: Rea
     </div>
   );
 }
-export const Mono = ({ children }: { children: ReactNode }) => <code className="font-mono text-[12px] font-medium [overflow-wrap:break-word]">{children}</code>;
+export const Mono = ({ children }: { children: ReactNode }) => <code translate="no" className="font-mono text-[12px] font-medium [overflow-wrap:break-word]">{children}</code>;
 export const rupees = (paise: number) => "₹" + (paise / 100).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 /** "03 Nov 2026, 14:05" in IST, 24-hour (DESIGN.md section 9). */
 export const when = (d: Date | string) => new Date(d).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata" });

@@ -2,7 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#E8EEEA">
 <title>Connect your app: Aran Cloud</title>
 <link rel="preload" href="/static/fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -14,7 +14,7 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar"><div class="wrap">
-  <a class="brand" href="/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 36V19a15 15 0 0 1 30 0v17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M11 36V20a9 9 0 0 1 18 0v16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M17 36V21a3 3 0 0 1 6 0v15" fill="currentColor"/></svg>Aran</a>
+  <a class="brand" translate="no" href="/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 36V19a15 15 0 0 1 30 0v17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M11 36V20a9 9 0 0 1 18 0v16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M17 36V21a3 3 0 0 1 6 0v15" fill="currentColor"/></svg>Aran</a>
   <nav class="nav" aria-label="Primary"><a href="/dashboard">Dashboard</a><button class="btn sm icon-btn" data-theme-btn aria-label="Toggle dark mode">◐ Night</button></nav>
 </div></header>
 <main id="main" class="wrap connect">
@@ -26,7 +26,7 @@
   <div id="need-key" hidden class="plate need-key">
     <h2>Paste a key to continue</h2>
     <p class="muted small">Use your admin or app-server key. It stays in this browser tab only.</p>
-    <form id="key-form"><div class="field"><label for="k">API key</label><input id="k" type="password" autocomplete="off" placeholder="aran_live_…"></div><button class="btn primary" type="submit">Use this key</button> <span id="key-err" class="small" role="alert"></span></form>
+    <form id="key-form"><div class="field"><label for="k">API key</label><input id="k" name="key" type="password" autocomplete="off" spellcheck="false" placeholder="aran_live_…"></div><button class="btn primary" type="submit">Use this key</button> <span id="key-err" class="small" role="alert"></span></form>
     <p class="small muted" style="margin:16px 0 0">No workspace yet? <a href="/signup">Get an API key</a>.</p>
   </div>
 

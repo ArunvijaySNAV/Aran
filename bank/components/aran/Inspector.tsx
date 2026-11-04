@@ -6,7 +6,7 @@ export interface InspectorCall { id: string; endpoint: string; sink?: string; pa
  *  Not mounted anywhere yet because the bank keeps no record of its Aran calls (docs/FUNCTIONALITY_GAPS.md #1). */
 export function Inspector({ calls, open }: { calls: InspectorCall[]; open: boolean }) {
   return (
-    <aside aria-label="Aran Inspector" hidden={!open} className="night fixed inset-y-0 right-0 z-40 w-[min(420px,100vw)] overflow-y-auto border-l border-nightline p-5 shadow-2xl">
+    <aside aria-label="Aran Inspector" hidden={!open} className="night fixed inset-y-0 right-0 z-40 w-[min(420px,100vw)] overscroll-contain overflow-y-auto border-l border-nightline p-5 shadow-2xl">
       <h2 className="mb-4 text-lg font-bold">Aran Inspector</h2>
       {calls.length === 0 ? <p className="text-sm text-nightdim">No Aran calls to show yet.</p> : calls.map((c) => (
         <div key={c.id} className="mb-4 border-t border-nightline pt-3">

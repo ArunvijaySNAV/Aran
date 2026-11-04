@@ -23,9 +23,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </header>
       <div className="md:grid md:grid-cols-[248px_minmax(0,1fr)]">
-        <aside className="fixed inset-x-0 bottom-0 z-30 border-t-[1.5px] border-ink bg-bond p-2 md:sticky md:top-14 md:h-[calc(100vh-56px)] md:border-r-[1.5px] md:border-t-0 md:p-4">
+        <div className="app-nav fixed inset-x-0 bottom-0 z-30 border-t-[1.5px] border-ink bg-bond p-2 md:sticky md:top-14 md:h-[calc(100vh-56px)] md:border-r-[1.5px] md:border-t-0 md:p-4">
           <Nav items={items} />
-        </aside>
+        </div>
         <main id="content" className="min-w-0 px-4 pb-28 pt-7 md:px-10 md:pb-16 md:pt-9">{children}</main>
       </div>
     </div>

@@ -40,3 +40,21 @@ No `outline: none` without replacement; no `user-scalable=no`; no `<div onClick>
 
 ## Per-file result
 Files not listed pass every rule above that can be checked by search. Files with a remaining note: `KycDecision.tsx` (immediate Reject), `OnboardForm.tsx` ("Continue" label, focus after step), `Portal.tsx`, `Erase.tsx`, `Chat.tsx`, `Scan.tsx`, `Breach.tsx` (focus after submit).
+
+## File-level read (every line read, not searched)
+Files: `bank/app/globals.css`, `bank/components/ui.tsx`, `bank/components/Nav.tsx` + `bank/app/(app)/layout.tsx` (the app shell), `aran-cloud/cloud/static/index.html`, `aran-cloud/cloud/static/dashboard.html`.
+
+Fixed after the read:
+- `globals.css`: `ui.tsx` fields used `focus:` rings; now `focus-visible:` (no ring on mouse click). New token `--bank-deep` replaces a hard-coded hover hex. `.app-nav` replaces the `aside[class*=fixed]` selector.
+- `ui.tsx`: `Mono` is `translate="no"`; primary hover uses the token.
+- App shell: the phone nav and the desktop sidebar were an `<aside>` (a complementary landmark) wrapping the primary `<nav>`; now a `<div>` with the `nav[aria-label=Main]` inside. `Inspector` (unmounted) gets `overscroll-contain`.
+- `index.html`: `<title>` uses a curly apostrophe; `#digits` has a `name`; brand links are `translate="no"`; `viewport-fit=cover`.
+- `dashboard.html` (and `connect.html`): key inputs have `name="key"` and `spellcheck="false"`; brand links `translate="no"`; `dialog { overscroll-behavior: contain }` in `system.css`.
+
+Found and left (reason):
+- `index.html`: the Copy button sits inside `role=tablist` (a non-tab child). Moving it changes the `.tabs` layout that `flip.js` and the tab styles rely on. Logged for a later pass.
+- `index.html`: `aria-label` on the two `<pre>` result blocks (`#demo-before`, `#demo-after`) has no effect without a role; harmless, left.
+- `dashboard.html`: `<nav id="nav" style="display:contents">` is filled by the frozen `dashboard.js`; some browsers drop semantics from `display: contents` elements. Left (frozen script builds into it).
+- `dashboard.html`: the theme toggle does not update `<meta name="theme-color">`; the toggle is in the frozen `console.js`.
+- `globals.css`: the blanket reduced-motion rule (documented exception) and `body { overflow-x: hidden }` (kept; the adapt run measures `documentElement.scrollWidth`, so overflow is still detected, and none was found). `pulse-gate` animates `filter`, but is only used by the unmounted `Flight`.
+- `ui.tsx`: `when()` fixes `en-GB` / IST by DESIGN.md section 9.

@@ -148,6 +148,6 @@ pre.light .raw { color: var(--stamp); background: var(--stamp-soft); border-radi
 /* footer table becomes stacked rows on a phone */
 @media (max-width: 640px) {
   .footer table, .footer tbody, .footer tr, .footer td { display: block; }
-  .footer thead { position: absolute; left: -9999px; }
+  .footer thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .footer td { border: 0; padding: 4px 14px; } .footer td:first-child { font-weight: 700; padding-top: 14px; } .footer tr { border-bottom: 1px solid var(--rule); }
 }

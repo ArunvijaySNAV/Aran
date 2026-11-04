@@ -12,7 +12,7 @@
   /* meaning: protected (seal), exposed (stamp), needs attention */
   --seal: #2342D6; --seal-soft: #DDE3FA; --stamp: #B3202A; --stamp-soft: #F6DCDD; --attention: #7A4A00; --attention-soft: #FBEBCB;
   /* Tessera Bank */
-  --bank: #0B5A49; --bank-soft: #D9EBE5; --bank-gold: #C59B27; --bank-gold-2: #E5C766;
+  --bank: #0B5A49; --bank-deep: #08463A; --bank-soft: #D9EBE5; --bank-gold: #C59B27; --bank-gold-2: #E5C766;
   /* Night world */
   --rule-strong: #76847F; --night: #0C1A2B; --night-2: #14263B; --night-line: #243A52; --night-text: #E8EEEA; --night-dim: #9FB1C4;
   --night-token: #9DB0FF; --night-raw: #FF8A8F; --night-raw-bg: #2A1417; --night-token-bg: rgba(157, 176, 255, .12);
@@ -42,7 +42,7 @@
   --color-stock: var(--stock); --color-bond: var(--bond); --color-ink: var(--ink); --color-ink2: var(--ink-2); --color-rule: var(--rule); --color-rulestrong: var(--rule-strong);
   --color-seal: var(--seal); --color-sealsoft: var(--seal-soft); --color-stamp: var(--stamp); --color-stampsoft: var(--stamp-soft);
   --color-attention: var(--attention); --color-attentionsoft: var(--attention-soft);
-  --color-bank: var(--bank); --color-banksoft: var(--bank-soft); --color-gold: var(--bank-gold);
+  --color-bank: var(--bank); --color-bankdeep: var(--bank-deep); --color-banksoft: var(--bank-soft); --color-gold: var(--bank-gold);
   --color-night: var(--night); --color-night2: var(--night-2); --color-nightline: var(--night-line); --color-nighttext: var(--night-text);
   --color-nightdim: var(--night-dim); --color-nighttoken: var(--night-token); --color-nightraw: var(--night-raw);
   --color-token: var(--token); --color-tokenbg: var(--token-bg); --color-raw: var(--raw); --color-rawbg: var(--raw-bg);
@@ -161,7 +161,7 @@ tbody td a { display: inline-flex; min-height: 44px; align-items: center; }
 a, button, input, select, textarea, summary { touch-action: manipulation; }
 html { scroll-padding-top: 72px; color-scheme: light; }
 .night { color-scheme: dark; }
-@media (max-width: 767.98px) { aside[class*="fixed"] { padding-bottom: calc(.5rem + env(safe-area-inset-bottom)); } }
+@media (max-width: 767.98px) { .app-nav { padding-bottom: calc(.5rem + env(safe-area-inset-bottom)); } }
 
 /* long unbroken text (names, ids, tokens) wraps instead of pushing the page sideways */
 body { overflow-wrap: break-word; }

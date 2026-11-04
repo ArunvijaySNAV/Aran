@@ -65,3 +65,9 @@ Environment note: running several review agents against the dev server exhausted
 - `all-caps-body` in `signup.html`: decorative key-slip microprint, `aria-hidden`.
 - `bounce-easing` ×2 (`landing.css`, `signup.css`): the seal-slam overshoot of DESIGN.md section 8.3 (scale 2.3 → 1 with overshoot).
 - `side-tab` in `connect.css` was real (a 3 px left border on the limits note): fixed, now a full 1.5 px outlined box.
+
+## Phase 4 gap-closing: /impeccable polish, harden, adapt (Skill tool), real zoom
+- `polish`, `harden` and `adapt` were run through the Skill tool and their playbooks followed. No finding contradicted DESIGN.md, so no conflict is logged.
+- Found and fixed: a visually-hidden table head positioned at `left: -9999px` made the landing page 10,389 px wide in RTL (`landing.css`, now clipped in place); long text overflowing the phone table cards; 320 px bank header; `viewport-fit=cover` on the console pages.
+- Measured: 320, 360, 390, 768, 1024, 1152, 1920 widths, landscape phones (844×390, 667×375) and forced `dir=rtl` at 390 and 1440 on 16 pages with long-text injection: no horizontal scroll, no sub-44 px targets (≤ 768 px), no console errors.
+- Real zoom (Chromium, viewport 1152×720 at device scale factor 1.25 and 960×600 at 1.5, which is what browser zoom does to a 1440×900 window) on bank dashboard, bank customers and all seven tabs of the signed-in console (signed in through the sign-in form with the admin key of a freshly created local workspace): `scrollWidth` equals `innerWidth` everywhere and the sidebar never overlaps the main column. A first run with `--force-device-scale-factor` alone kept the CSS viewport at 1440 (device pixel ratio only), so it was repeated with the shrunken viewport above.

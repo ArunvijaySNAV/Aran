@@ -169,3 +169,5 @@ html { scroll-padding-top: 72px; }
 /* long unbroken text wraps instead of pushing the page sideways */
 body { overflow-wrap: break-word; }
 h1, h2, h3, p, li, label, dd, dt, summary { overflow-wrap: anywhere; }
+
+dialog { overscroll-behavior: contain; }

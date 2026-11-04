@@ -2,9 +2,9 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#E8EEEA">
-<title>Aran Cloud: the number a thief can't use</title>
+<title>Aran Cloud: the number a thief can’t use</title>
 <meta name="description" content="Aran swaps Aadhaar, card and mobile numbers for tokens that fail their own checksum, before they reach your database, logs, vendors or AI tools.">
 <link rel="preload" href="/static/fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
@@ -20,7 +20,7 @@
 
 <header class="topbar">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="Aran home"><svg aria-hidden="true"><use href="#mark"/></svg>Aran</a>
+    <a class="brand" translate="no" href="/" aria-label="Aran home"><svg aria-hidden="true"><use href="#mark"/></svg>Aran</a>
     <nav class="nav" aria-label="Primary">
       <a class="hide-sm" href="#how">How it works</a>
       <a class="hide-sm" href="#bank">In a bank</a>
@@ -49,7 +49,7 @@
       <div class="guil-wrap" aria-hidden="true"><svg viewBox="-260 -260 520 520" data-rosette fill="none" stroke="currentColor" stroke-width=".55"></svg></div>
       <div class="plate-top"><span id="plateLabel">What your app receives</span><span id="plateSink" class="plate-sink"></span></div>
       <label class="sr-only" for="digits">Twelve-digit number</label>
-      <input class="digits" id="digits" inputmode="numeric" autocomplete="off" maxlength="14" spellcheck="false" aria-describedby="verdict">
+      <input class="digits" id="digits" name="digits" inputmode="numeric" autocomplete="off" maxlength="14" spellcheck="false" aria-describedby="verdict">
       <div class="check" id="verdict-wrap" aria-live="polite"><span id="verdict" class="stamp plain"></span></div>
       <div class="sinks" id="sinks" role="group" aria-label="Destination, each one gets a different token">
         <button type="button" data-s="kyc-archive" aria-pressed="true">kyc-archive</button>
@@ -246,7 +246,7 @@ safe_text = r.json()["after"]  # tokens, not the original values</pre>
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <a class="brand" href="/" aria-label="Aran home"><svg aria-hidden="true"><use href="#mark"/></svg>Aran</a>
+        <a class="brand" translate="no" href="/" aria-label="Aran home"><svg aria-hidden="true"><use href="#mark"/></svg>Aran</a>
         <p class="small" style="margin-top:12px">Aran Cloud is a preview. No contact address is published yet.</p>
       </div>
       <div>
