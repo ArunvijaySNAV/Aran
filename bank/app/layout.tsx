@@ -15,7 +15,6 @@ export const metadata: Metadata = { title: { default: "Tessera Bank", template: 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={martian.variable}>
-      <head><link rel="preload" href="/fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossOrigin="anonymous" /></head>
       <body className="bank-ui min-h-screen antialiased">
         <a href="#content" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-ink focus:px-4 focus:py-3 focus:font-bold focus:text-white">Skip to content</a>
         {children}

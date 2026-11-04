@@ -1,6 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { Guilloche } from "@/components/aran/Guilloche";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
 export const cn = (...a: ClassValue[]) => twMerge(clsx(a));
@@ -25,7 +26,7 @@ export function Button({ className, variant, size, ...p }: ButtonHTMLAttributes<
 export const linkButton = (v: VariantProps<typeof button> = {}, extra?: string) => cn(button(v), "no-underline", extra);
 
 // Inputs: 17px text, radius 8, 1.5px rule border on bond; focus = bank border + soft ring; error = attention (red is reserved for raw data)
-const field = "min-h-[46px] w-full rounded-[8px] border-[1.5px] border-rule bg-bond px-3 py-2.5 text-[17px] text-ink placeholder:text-ink2 placeholder:opacity-80 focus:border-bank focus:outline focus:outline-[3px] focus:outline-banksoft aria-[invalid=true]:border-attention";
+const field = "min-h-[46px] w-full rounded-[8px] border-[1.5px] border-rulestrong bg-bond px-3 py-2.5 text-[17px] text-ink placeholder:text-ink2 placeholder:opacity-80 focus:border-bank focus:outline focus:outline-[3px] focus:outline-banksoft aria-[invalid=true]:border-attention";
 export const Input = ({ className, ...p }: InputHTMLAttributes<HTMLInputElement>) => <input className={cn(field, className)} {...p} />;
 export const Textarea = ({ className, ...p }: TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea className={cn(field, "min-h-28", className)} {...p} />;
 export const Select = ({ className, ...p }: SelectHTMLAttributes<HTMLSelectElement>) => <select className={cn(field, className)} {...p} />;
@@ -36,7 +37,7 @@ export function Field({ label, htmlFor, error, hint, children }: { label: string
       <label htmlFor={htmlFor} className="block text-[15px] font-medium text-ink2">{label}</label>
       {children}
       {/* fixed-height message slot: a field error appearing or clearing must never move the controls below it */}
-      <div className="min-h-8">
+      <div className="min-h-7">
         {error ? <p id={`${htmlFor}-err`} role="alert" className="flex items-start gap-1.5 text-[14px] font-medium text-attention"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="mt-0.5 shrink-0"><path d="M8 1.5l7 12.5H1L8 1.5z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /><path d="M8 6.5v3.2M8 11.6v.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>{error}</p> : hint ? <p className="text-[13px] text-ink2">{hint}</p> : null}
       </div>
     </div>
@@ -68,16 +69,23 @@ export const Empty = ({ title, children }: { title: string; children?: ReactNode
 );
 export const Skeleton = ({ className }: { className?: string }) => <div aria-hidden className={cn("skel h-5", className)} />;
 
-// Big numerals: expanded width, 800, tabular
-export const Stat = ({ label, value, sub }: { label: string; value: ReactNode; sub?: string }) => (
-  <Card><div className="w-expanded tabular break-words text-[clamp(24px,2.5vw,38px)] leading-[1.05] [overflow-wrap:anywhere]">{value}</div><div className="mt-2 text-[15px] font-semibold">{label}</div>{sub ? <div className="mt-1 text-[13px] text-ink2">{sub}</div> : null}</Card>
+// Big numerals: expanded width, 800, tabular. `lead` makes it the hero tile: it carries the guilloche corner.
+export const Stat = ({ label, value, sub, lead = false, className }: { label: string; value: ReactNode; sub?: string; lead?: boolean; className?: string }) => (
+  <Card className={cn("relative flex flex-col overflow-hidden", className)}>
+    {lead ? <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-[300px] w-[300px] text-seal opacity-40 [mask-image:linear-gradient(to_left,#000_20%,transparent_72%)]"><Guilloche className="h-full w-full" /></div> : null}
+    <div className="relative flex flex-1 flex-col justify-between gap-6">
+      <div className={cn("w-expanded tabular break-words leading-[1.05] [overflow-wrap:anywhere]", lead ? "text-[clamp(40px,4.6vw,68px)]" : "text-[clamp(24px,2vw,32px)]")}>{value}</div>
+      <div><div className="text-[15px] font-semibold">{label}</div>{sub ? <div className="mt-1 max-w-[34ch] text-[13px] text-ink2">{sub}</div> : null}</div>
+    </div>
+  </Card>
 );
 
-// Tables: 44px rows, hairlines, sticky header, condensed header type
+// Tables: 44px rows, hairlines, sticky header, condensed header type. Under 640px each row becomes a labelled card (header text is passed to CSS as --h1..--hN, see globals.css .stack).
 export function Table({ head, children, label }: { head: string[]; children: ReactNode; label: string }) {
+  const labels = Object.fromEntries(head.map((h, i) => [`--h${i + 1}`, JSON.stringify(h)])) as React.CSSProperties;
   return (
-    <div className="max-h-[70vh] overflow-auto rounded-[8px] border-[1.5px] border-rule bg-bond">
-      <table aria-label={label} className="w-full border-collapse text-[15px]">
+    <div className="stack-wrap max-h-[70vh] overflow-auto rounded-[8px] border-[1.5px] border-rule bg-bond">
+      <table aria-label={label} style={labels} className="stack w-full border-collapse text-[15px]">
         <thead><tr>{head.map((h) => <th key={h} scope="col" className="sticky top-0 whitespace-nowrap border-b-[1.5px] border-rule bg-bond px-3 py-2.5 text-left text-[13px] font-semibold text-ink2 [font-stretch:80%]">{h}</th>)}</tr></thead>
         <tbody className="[&_td]:min-h-11 [&_td]:border-b [&_td]:border-rule [&_td]:px-3 [&_td]:py-2.5 [&_td]:align-top [&_tr:last-child_td]:border-b-0">{children}</tbody>
       </table>

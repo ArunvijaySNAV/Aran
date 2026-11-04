@@ -18,7 +18,7 @@ export default function LoginPage() {
               <LoginForm />
             </div>
           </section>
-          <p className="text-center text-[15px] text-ink2">Customer? <Link className="font-semibold text-ink underline underline-offset-4" href="/portal">Open the customer portal</Link></p>
+          <p className="text-center text-[15px] text-ink2">Customer? <Link className="inline-flex min-h-11 items-center font-semibold text-ink underline underline-offset-4" href="/portal">Open the customer portal</Link></p>
         </div>
       </main>
     </>

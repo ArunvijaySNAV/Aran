@@ -28,3 +28,8 @@ None yet. `DESIGN.md` wins over any detector rule that contradicts it (guilloche
 ### Detector exceptions: dashboard (Screen 4)
 - None. `impeccable detect` returned no findings for `dashboard.html`, `app.css` or `dashboard.js`. Caveat: tabs are rendered by `dashboard.js`, so the detector sees only the shell; contrast and layout of the rendered tabs were measured in the browser instead.
 - Static markup change: `<div class="main">` became `<main class="main">` (a landmark). No id, data attribute or script-queried class changed.
+
+## Bank Screen 5 (login and dashboard)
+- No test selectors edited. Detector (`impeccable detect`) on login, dashboard, layout, components, globals.css: no findings.
+- Tables now stack into labelled cards under 640 px through CSS only (`.stack` in `app/globals.css`, header text passed as `--hN` from `components/ui.tsx`), so every bank table gets it.
+- Archivo `@font-face` urls moved to `app/fonts/` (see gap 13).

@@ -15,11 +15,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-[calc(100vh-61px)]">
       {/* top bar: bank green with the 3px gold line (DESIGN.md section 5) */}
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b-[3px] border-gold bg-bank px-4 text-white md:px-6">
-        <Link href="/dashboard" className="rounded text-white no-underline"><Logo /></Link>
+        <Link href="/dashboard" className="inline-flex min-h-11 items-center rounded text-white no-underline"><Logo /></Link>
         <div className="flex items-center gap-3">
           <span className="hidden truncate text-[13px] text-white/80 sm:inline">{s.email}</span>
-          <span className="rounded-full bg-white/15 px-3 py-0.5 text-[13px] font-semibold">{ROLE_LABEL[s.role]}</span>
-          <form action={logout}><Button size="sm" type="submit" className="min-h-9 text-white shadow-[inset_0_0_0_1.5px_rgba(255,255,255,.7)] hover:bg-white/10">Sign out</Button></form>
+          <span className="rounded-full bg-white/20 px-3 py-0.5 text-[14px] font-semibold">{ROLE_LABEL[s.role]}</span>
+          <form action={logout}><Button size="sm" type="submit" className="min-h-11 text-white shadow-[inset_0_0_0_1.5px_rgba(255,255,255,.7)] hover:bg-white/10">Sign out</Button></form>
         </div>
       </header>
       <div className="md:grid md:grid-cols-[248px_minmax(0,1fr)]">

@@ -1,9 +1,11 @@
 export { AuditChain } from "./AuditChain";
 export { Certificate } from "./Certificate";
 export { RawChip, SinkPill, TokenChip } from "./Chips";
+export { DataPlanePreview } from "./DataPlanePreview";
 export { Flight } from "./Flight";
 export { Guilloche, GuillocheBand } from "./Guilloche";
 export { Inspector, type InspectorCall } from "./Inspector";
+export { LogLine } from "./LogLine";
 export { AranMark, TesseraTiles } from "./Mark";
 export { Microprint, Plate } from "./Plate";
 export { RedactionSkeleton } from "./RedactionSkeleton";

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-@font-face { font-family: "Archivo"; src: url("/fonts/archivo-latin-ext-wdth-normal.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap;
+@font-face { font-family: "Archivo"; src: url("./fonts/archivo-latin-ext-wdth-normal.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap;
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: "Archivo"; src: url("/fonts/archivo-latin-wdth-normal.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap;
+@font-face { font-family: "Archivo"; src: url("./fonts/archivo-latin-wdth-normal.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
 /* DESIGN.md sections 3 and 11. No hard-coded hex inside components: add a token here (and measure it) first. */
@@ -14,7 +14,7 @@
   /* Tessera Bank */
   --bank: #0B5A49; --bank-soft: #D9EBE5; --bank-gold: #C59B27; --bank-gold-2: #E5C766;
   /* Night world */
-  --night: #0C1A2B; --night-2: #14263B; --night-line: #243A52; --night-text: #E8EEEA; --night-dim: #9FB1C4;
+  --rule-strong: #76847F; --night: #0C1A2B; --night-2: #14263B; --night-line: #243A52; --night-text: #E8EEEA; --night-dim: #9FB1C4;
   --night-token: #9DB0FF; --night-raw: #FF8A8F; --night-raw-bg: #2A1417; --night-token-bg: rgba(157, 176, 255, .12);
   /* foil: verified moments only */
   --foil: linear-gradient(100deg, #9BF0D2, #B9A6FF, #FFC6A8, #9AD8FF, #9BF0D2);
@@ -32,14 +32,14 @@
 .night {
   --background: var(--night); --foreground: var(--night-text); --card: var(--night-2); --card-foreground: var(--night-text);
   --border: var(--night-line); --muted-foreground: var(--night-dim); --ring: var(--night-token);
-  --token: var(--night-token); --token-bg: var(--night-token-bg); --raw: var(--night-raw); --raw-bg: var(--night-raw-bg);
+  --rule-strong: #6C8099; --token: var(--night-token); --token-bg: var(--night-token-bg); --raw: var(--night-raw); --raw-bg: var(--night-raw-bg);
   --ink: var(--night-text); --ink-2: var(--night-dim); --rule: var(--night-line); --bond: var(--night-2); --stock: var(--night);
   background: var(--night); color: var(--night-text);
 }
 
 @theme inline {
   /* design tokens as Tailwind colours */
-  --color-stock: var(--stock); --color-bond: var(--bond); --color-ink: var(--ink); --color-ink2: var(--ink-2); --color-rule: var(--rule);
+  --color-stock: var(--stock); --color-bond: var(--bond); --color-ink: var(--ink); --color-ink2: var(--ink-2); --color-rule: var(--rule); --color-rulestrong: var(--rule-strong);
   --color-seal: var(--seal); --color-sealsoft: var(--seal-soft); --color-stamp: var(--stamp); --color-stampsoft: var(--stamp-soft);
   --color-attention: var(--attention); --color-attentionsoft: var(--attention-soft);
   --color-bank: var(--bank); --color-banksoft: var(--bank-soft); --color-gold: var(--bank-gold);
@@ -93,3 +93,21 @@ table { font-size: 15px; }
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
   .guil-spin, .skel { animation: none !important; }
 }
+
+/* Tables become labelled cards under 640px. Header text arrives as --h1..--hN on the table (components/ui.tsx). */
+@media (max-width: 639.98px) {
+  .stack-wrap { max-height: none; overflow: visible; border: 0; background: transparent; }
+  .stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .stack, .stack tbody, .stack tr, .stack td { display: block; }
+  .stack tr { margin-bottom: 10px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--bond); padding: 6px 0; }
+  .stack td { overflow-wrap: anywhere; display: grid; grid-template-columns: minmax(5.5rem, 7.5rem) minmax(0, 1fr); gap: 4px 12px; border: 0; padding: 6px 14px; }
+  .stack td::before { color: var(--ink-2); font-size: 12px; font-weight: 600; font-stretch: 80%; padding-top: 2px; }
+  .stack td:nth-child(1)::before { content: var(--h1, ""); } .stack td:nth-child(2)::before { content: var(--h2, ""); }
+  .stack td:nth-child(3)::before { content: var(--h3, ""); } .stack td:nth-child(4)::before { content: var(--h4, ""); }
+  .stack td:nth-child(5)::before { content: var(--h5, ""); } .stack td:nth-child(6)::before { content: var(--h6, ""); }
+  .stack td:nth-child(7)::before { content: var(--h7, ""); } .stack td:nth-child(8)::before { content: var(--h8, ""); }
+  .stack td:nth-child(9)::before { content: var(--h9, ""); } .stack td:nth-child(10)::before { content: var(--h10, ""); }
+}
+
+/* the fixed bottom nav (phones) must not cover the footer when scrolled to the end */
+@media (max-width: 767.98px) { body:has(nav[aria-label="Main"]) > footer { padding-bottom: 5.5rem; } }
