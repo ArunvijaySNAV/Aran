@@ -85,8 +85,11 @@
         stamp('good', 'Fails the Verhoeff checksum: cannot be an Aadhaar');
         sinkRow.removeAttribute('aria-hidden'); $$('button', sinkRow).forEach(function (b) { b.disabled = false; b.tabIndex = 0; b.setAttribute('aria-pressed', b.getAttribute('data-s') === sink); });
         protectBtn.disabled = true;
+        var cur = $('button[aria-pressed=true]', sinkRow); if (cur) cur.focus();
       });
     }
+    input.addEventListener('focus', function () { input.select(); });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); protectBtn.click(); } });
     input.addEventListener('input', function () { if (state.protected) { state.protected = false; } showRaw(); });
     protectBtn.addEventListener('click', function () { if (!state.protected && state.raw.length === 12 && verhoeffValid(state.raw)) protect(state.sink); });
     newBtn.addEventListener('click', function () { clearInterval(state.timer); input.readOnly = false; state.sink = 'kyc-archive'; $$('button', sinkRow).forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-s') === 'kyc-archive'); }); setNumber(sampleAadhaar()); });
@@ -136,7 +139,7 @@
   if (fBefore && fAfter && fMeta) {
     var running = false;
     function fly() {
-      if (reduce || running) return;
+      if (reduce || running || window.innerWidth < 640) return;
       var raws = $$('.raw', fBefore), toks = $$('.tok', fAfter);
       if (!raws.length || !toks.length) return;
       running = true; var boundaryX = (gate || fAfter).getBoundingClientRect(); var done = 0;
@@ -166,7 +169,7 @@
 
   // ---------------------------------------------------------------- code tabs
   var tabs = $$('[data-codetab]');
-  tabs.forEach(function (t, i) { t.tabIndex = i === 0 ? 0 : -1; t.addEventListener('keydown', function (e) { var k = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (k) { var n = tabs[(i + k + tabs.length) % tabs.length]; n.focus(); n.click(); } }); });
+  tabs.forEach(function (t, i) { t.tabIndex = i === 0 ? 0 : -1; t.addEventListener('keydown', function (e) { if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); var h = e.key === 'Home' ? tabs[0] : tabs[tabs.length - 1]; h.focus(); h.click(); return; } var k = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (k) { var n = tabs[(i + k + tabs.length) % tabs.length]; n.focus(); n.click(); } }); });
   tabs.forEach(function (t) {
     t.addEventListener('click', function () {
       tabs.forEach(function (o) { o.setAttribute('aria-selected', o === t); });

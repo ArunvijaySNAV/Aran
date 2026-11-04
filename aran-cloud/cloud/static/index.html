@@ -24,7 +24,7 @@
       <a class="hide-sm" href="#how">How it works</a>
       <a class="hide-sm" href="#bank">In a bank</a>
       <a class="hide-sm" href="#erasure">Erasure</a>
-      <a class="hide-sm" href="/dashboard">Sign in</a>
+      <a href="/dashboard">Sign in</a>
       <button class="btn sm icon-btn" data-theme-btn aria-label="Toggle dark mode" title="Toggle dark mode">◐<span class="hide-sm"> Night</span></button>
       <a class="btn primary sm" href="/signup">Get an API key</a>
     </nav>
@@ -41,7 +41,7 @@
         <button class="btn primary" id="protectBtn" type="button">Protect this number</button>
         <button class="btn" id="newBtn" type="button">Try another</button>
       </div>
-      <p class="small muted note">Illustration with a sample number. Type or paste any 12 digits; a real call on a generated sample is further down.</p>
+      <p class="note">Illustration with a sample number. Type or paste any 12 digits; a real call on a generated sample is further down. A sink is any place data lands: database, logs, CRM, vendor or AI tool.</p>
     </div>
 
     <div class="plate" id="plate">
@@ -56,7 +56,7 @@
         <button type="button" data-s="loan-vendor" aria-pressed="false">loan-vendor</button>
         <button type="button" data-s="ai-gateway" aria-pressed="false">ai-gateway</button>
       </div>
-      <div class="micro" aria-hidden="true">PROTECTED BEFORE IT IS STORED · PROTECTED BEFORE IT IS STORED · PROTECTED BEFORE IT IS STORED · PROTECTED BEFORE IT IS STORED</div>
+      <div class="micro" aria-hidden="true"><span>Protected before it is stored</span><span>Protected before it is stored</span><span>Protected before it is stored</span></div>
     </div>
   </section>
 
@@ -91,7 +91,7 @@
   <!-- 3. erase and certificate (illustration) -->
   <section class="scene" id="erasure" aria-labelledby="erase-h">
     <div class="wrap">
-      <div class="scene-head">
+      <div class="scene-head rev">
         <h2 id="erase-h">Erase a customer. Get a certificate.</h2>
         <p>Destroying one key makes every copy unreadable, in every system at once. The proof is signed and checkable by anyone.</p>
       </div>
@@ -210,8 +210,8 @@ safe_text = r.json()["after"]  # tokens, not the original values</pre>
       </div>
       <div class="grid cols-3">
         <div class="card price"><h3>Free</h3><div class="amt">₹0</div><ul><li>10,000 protect calls a month</li><li>One workspace with its own isolated vault</li><li>Scoped API keys, audit log, receipts</li></ul><a class="btn" href="/signup">Get an API key</a></div>
-        <div class="card price featured"><h3>Team</h3><div class="amt">On request</div><ul><li>Higher limits and rate limits</li><li>Multiple workspaces</li><li>Priority support</li></ul><a class="btn primary" href="mailto:hello@aran.example?subject=Aran%20Team%20plan">Talk to us</a></div>
-        <div class="card price"><h3>Enterprise</h3><div class="amt">Custom</div><ul><li>Self-hosted deployment</li><li>Custom retention and key custody</li><li>Security review support</li></ul><a class="btn" href="mailto:hello@aran.example?subject=Aran%20Enterprise">Contact sales</a></div>
+        <div class="card price featured"><h3>Team</h3><div class="amt">On request</div><ul><li>Higher limits and rate limits</li><li>Multiple workspaces</li><li>Priority support</li></ul><p class="small muted">Contact details are not published in this preview.</p></div>
+        <div class="card price"><h3>Enterprise</h3><div class="amt">Custom</div><ul><li>Self-hosted deployment</li><li>Custom retention and key custody</li><li>Security review support</li></ul><p class="small muted">Contact details are not published in this preview.</p></div>
       </div>
     </div>
   </section>
@@ -227,7 +227,16 @@ safe_text = r.json()["after"]  # tokens, not the original values</pre>
         <li>Detection of identifiers with a checksum is reliable; detection of names is statistical and can miss one. Every response says which values were protected.</li>
         <li>Names become one-way pseudonyms. They cannot be revealed later.</li>
         <li>Erasure destroys the key for one customer and one purpose. Tokens issued under other purposes stay readable until you erase those too.</li>
+        <li>An erasure receipt is signed with your workspace&rsquo;s keys, which Aran holds. It is not signed by your organisation.</li>
+        <li>Backups taken before an erasure are outside Aran&rsquo;s control. Expire them under your own retention policy.</li>
       </ul>
+    </div>
+  </section>
+
+  <section class="scene closing" aria-labelledby="close-h">
+    <div class="wrap closing-row">
+      <h2 id="close-h">Try it on a sample record.</h2>
+      <div class="row"><a class="btn primary" href="/signup">Get an API key</a><a class="btn" href="/dashboard">Sign in</a></div>
     </div>
   </section>
 </main>
@@ -237,19 +246,22 @@ safe_text = r.json()["after"]  # tokens, not the original values</pre>
     <div class="foot-grid">
       <div>
         <a class="brand" href="/" aria-label="Aran home"><svg aria-hidden="true"><use href="#mark"/></svg>Aran</a>
-        <p class="small" style="margin-top:12px">Aran Cloud is a preview. Security contact: <a href="mailto:security@aran.example">security@aran.example</a></p>
+        <p class="small" style="margin-top:12px">Aran Cloud is a preview. No contact address is published yet.</p>
       </div>
-      <div class="table-wrap"><table>
+      <div>
+        <h3 id="help-h">Obligations Aran helps with</h3>
+        <div class="table-wrap"><table aria-labelledby="help-h">
         <thead><tr><th scope="col">Obligation</th><th scope="col">What Aran provides</th></tr></thead>
         <tbody>
-          <tr><td>DPDP Act 2023: reasonable security safeguards</td><td>Identifiers are tokenised before storage; tokens are useless without the vault.</td></tr>
-          <tr><td>DPDP Act 2023: erasure on withdrawal of consent</td><td>Per-customer, per-purpose key destruction with a signed, independently verifiable receipt.</td></tr>
-          <tr><td>RBI guidance on data handling and audit</td><td>Scoped keys, a hash-chained reveal log, and per-destination tokens that show where a leak came from.</td></tr>
-          <tr><td>CERT-In directions on logs and incidents</td><td>Redacted logs and traceable tokens help you scope a leak. Aran is not a CERT-In empanelled service.</td></tr>
+          <tr><td>DPDP Act 2023: erasure when consent ends (Section 12)</td><td>Aran crypto-shreds the purpose key so plaintext cannot be recovered from tokens, and publishes verifiable post-quantum transparency receipts.</td></tr>
+          <tr><td>DPDP Act 2023: security safeguards</td><td>Identifiers are tokenised before they are stored or shared. This is one technical safeguard, not the whole set.</td></tr>
+          <tr><td>RBI directions on data handling and audit</td><td>Scoped API keys, a hash-chained log of every reveal, and per-destination tokens that show where a leak came from.</td></tr>
+          <tr><td>CERT-In directions on logs and incidents</td><td>Redacted logs and traceable tokens help you scope a leak. Aran does not report incidents for you.</td></tr>
         </tbody>
       </table></div>
+      </div>
     </div>
-    <p class="small">This is a technical mapping, not legal advice and not a certification.</p>
+    <p class="small">Aran helps with these obligations. It does not certify compliance, and meeting them stays your organisation&rsquo;s responsibility. This is a technical mapping, not legal advice.</p>
   </div>
 </footer>
 <script src="/static/js/console.js"></script>

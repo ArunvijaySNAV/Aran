@@ -14,3 +14,4 @@ None yet. `DESIGN.md` wins over any detector rule that contradicts it (guilloche
 - `repeating-stripes-gradient`: the dashed boundary line between the bank and Night panels is the specified "visible line" of principle 2.
 - `bounce-easing` `cubic-bezier(.2,1.3,.4,1)`: the seal "slams in with overshoot" (DESIGN.md section 8.3).
 - `cramped-padding` on `.table-wrap`: false positive; table cells carry 10px/14px padding, the wrapper only supplies the border.
+- Landing audit notes: `prefers-reduced-motion` uses one blanket `.001ms` rule plus explicit end states (`.seal` shown, guilloche rotation off, flight chips not created, flip jumps to the final token). DESIGN.md section 10 asks for exactly this ("every moment jumps to its final state"), so the blanket rule is kept on purpose.

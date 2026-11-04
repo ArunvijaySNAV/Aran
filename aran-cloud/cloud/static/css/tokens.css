@@ -11,6 +11,10 @@
   /* Night world */
   --night: #0C1A2B; --night-2: #14263B; --night-line: #243A52; --night-text: #E8EEEA; --night-dim: #9FB1C4;
   --night-token: #9DB0FF; --night-raw: #FF8A8F; --night-raw-bg: #2A1417; --night-token-bg: rgba(157, 176, 255, .12);
+  /* Tessera Bank (shown on the landing's bank panel) */
+  --bank: #0B5A49; --bank-gold: #C59B27; --bank-gold-2: #E5C766;
+  /* opaque chips for the flight overlay */
+  --night-token-chip: #1A2347;
   /* foil: verified moments only */
   --foil: linear-gradient(100deg, #9BF0D2, #B9A6FF, #FFC6A8, #9AD8FF, #9BF0D2);
 
