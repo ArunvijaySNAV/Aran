@@ -15,7 +15,7 @@ ARAN_BASE_URL=https://<your-tunnel> python3 scripts/provision_bank_keys.py   # w
 scripts/bank-run.sh seed.ts                                                  # staff users + 25 customers through Aran
 scripts/bank-run.sh assert_no_plaintext.ts                                   # must print PASS
 ```
-`SEED_STAFF_PASSWORD` sets the staff password (default is a demo value: change it for anything public).
+`SEED_STAFF_PASSWORD` sets the staff password. Against a non-local `DATABASE_URL` the seed refuses to run without it (the public local default `Tessera-demo-1` is used only for a local database), and it never prints the password. Choose a strong one, keep it in your password manager, and never write the hosted passwords in this repository, an issue or a chat.
 
 ## Aran on your machine
 ```bash
@@ -68,3 +68,15 @@ Locally put `CONNECTION_ENC_KEY=<value>` in `bank/.env.local` (mode 600, gitigno
 - [ ] Bank login works for all four roles; `assert_no_plaintext.ts` prints PASS (it also fails if an Aran API key is stored in any table)
 - [ ] Admin > Aran connection shows **Connected** (or the `ARAN_*` variables are set and "Test connection" passes)
 - [ ] Laptop on power, sleep disabled (`caffeinate -dis`), lid open or clamshell with a display
+
+## Resetting the hosted demo
+`scripts/reset_hosted_demo.sh` empties the bank's demo data on a hosted Supabase project (customers, accounts, transactions, KYC cases, reveals, erasure requests, logs, CRM, vendor and AI-chat tables, and restarts `CUS-` and account numbering). It keeps the staff rows (`core_banking.staff`), the saved Aran connection, the migrations table and **all Supabase Auth users**, and never touches any schema other than the five the bank owns (`core_banking`, `log_platform`, `crm`, `vendor_share`, `ai_chat`).
+
+Safeguards, in order: it refuses unless `HOSTED_PROJECT_REF` is set and equals the project ref inside `DATABASE_URL` (direct `db.<ref>.supabase.co` or pooler user `postgres.<ref>`); it refuses a local database and a non-interactive shell; it lists every table and row count; it needs you to type `reset <ref>`; it writes and verifies a JSON backup of all rows in those schemas (mode 600, in `~/aran2-hosted-backups/`, override with `BACKUP_DIR`; the rows hold tokens, not raw identifiers, but keep the file private) and only then truncates, in one transaction.
+```bash
+set -a; source bank/.env.production.local; set +a      # your private copy; never committed
+HOSTED_PROJECT_REF=<project ref> scripts/reset_hosted_demo.sh --dry-run   # checks and counts only
+HOSTED_PROJECT_REF=<project ref> scripts/reset_hosted_demo.sh             # backup, typed confirmation, reset
+SEED_STAFF_PASSWORD=<private> scripts/bank-run.sh seed.ts   # reseed (use bank/.env.production.local values, see SECRETS_CHECKLIST)
+```
+Aran's own vault is not reset by this script. An identifier Aran has already seen belongs to the first customer reference that presented it, so after a reset either use a fresh Aran workspace or expect the same test values to behave as "already owned" (erasure will then not make them unreadable). The guard logic is unit-tested; the data steps (backup, truncate) have not been run against any database.

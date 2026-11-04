@@ -14,14 +14,14 @@ if (!ADMIN_KEY) { console.error('ARAN_ADMIN_KEY is required (the console steps p
 // the values used in the script (each verified with bank/lib/validators.ts: Verhoeff, Luhn, 10-digit mobile 6-9, PAN shape)
 const V = {
   landingAadhaar: '343950504654',
-  cust: { name: 'Anjali Verma', mobile: '7432972377', aadhaar: '652301019164', pan: 'CFLPH7375C', card: '4247108646585311', loan: '150000' },
-  support: { card: '4549955977661482', aadhaar: '402079608370', mobile: '9860183355' },
+  cust: { name: 'Anjali Testwala', mobile: '7432972377', aadhaar: '652301019164', pan: 'CFLPH7375C', card: '4111111111111111', loan: '150000' },
+  support: { card: '4242424242424242', aadhaar: '402079608370', mobile: '9860183355' },
 };
 // Aran gives an identifier to the customer reference that FIRST presented it: onboarding the same Aadhaar/mobile/PAN/card again under a new
 // reference reuses the first owner's tokens, so erasing the new reference does not make them unreadable. Use a fresh set for every run in the same workspace.
 const SETS = {
-  spare1: { name: 'Rohan Iyer', mobile: '9617326009', aadhaar: '986363938813', pan: 'YAOPJ0578A', card: '4179350466188048', loan: '150000' },
-  spare2: { name: 'Kavita Menon', mobile: '6743012187', aadhaar: '670917204747', pan: 'VNSPM9157U', card: '4615601807485697', loan: '150000' },
+  spare1: { name: 'Rohan Demokar', mobile: '9617326009', aadhaar: '986363938813', pan: 'YAOPJ0578A', card: '5555555555554444', loan: '150000' },
+  spare2: { name: 'Kavita Sampleton', mobile: '6743012187', aadhaar: '670917204747', pan: 'VNSPM9157U', card: '5105105105105100', loan: '150000' },
 };
 if (SETS[process.env.DEMO_SET]) V.cust = SETS[process.env.DEMO_SET];
 const diffs = []; const lines = [];

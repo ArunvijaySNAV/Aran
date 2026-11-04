@@ -29,18 +29,18 @@ def get_core_headers():
 
 
 SAMPLE_NAMES = [
-    "Aarav Sharma",
-    "Priya Patel",
-    "Vikram Malhotra",
-    "Ananya Deshmukh",
-    "Rajesh Iyer",
-    "Meera Nair",
-    "Amod Varma",
-    "Sunita Rao",
-    "Kavita Reddy",
-    "Rohan Gupta",
-    "Siddharth Joshi",
-    "Deepa Menon",
+    "Aarav Testwala",
+    "Priya Sampleton",
+    "Vikram Demokar",
+    "Ananya Mockerjee",
+    "Rajesh Specimen",
+    "Meera Fictionwal",
+    "Amod Dummyani",
+    "Sunita Samplekar",
+    "Kavita Testrao",
+    "Rohan Demonair",
+    "Siddharth Fakeswamy",
+    "Deepa Trialwala",
 ]
 
 

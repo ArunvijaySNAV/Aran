@@ -1,6 +1,6 @@
 # 5-minute demo
 
-Logins (password from `SEED_STAFF_PASSWORD`, default `Tessera-demo-1`): `kyc@`, `support@`, `compliance@`, `admin@tessera.test`. Keep two windows: the bank, and the Aran console dashboard (`/dashboard`, sign in with the workspace admin key).
+Logins (LOCAL rehearsal password: `SEED_STAFF_PASSWORD`, which defaults to the public local value `Tessera-demo-1` only when the database is local; the hosted deployment's passwords are kept privately and are not written in this repository): `kyc@`, `support@`, `compliance@`, `admin@tessera.test`. Keep two windows: the bank, and the Aran console dashboard (`/dashboard`, sign in with the workspace admin key).
 
 | Time | Do | Say / show |
 |---|---|---|

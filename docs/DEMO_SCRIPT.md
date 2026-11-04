@@ -3,7 +3,7 @@
 Everything below was taken from the code and from a rehearsal run of this exact script (`e2e/demo_walkthrough.mjs`, see the last section). Where something is not verified it says so.
 
 **Addresses.** Aran console: `http://127.0.0.1:8100` · Tessera Bank: `http://127.0.0.1:3100`.
-**Bank logins** (password for all: `Tessera-demo-1`): `kyc@tessera.test`, `support@tessera.test`, `compliance@tessera.test`, `admin@tessera.test`.
+**Bank logins** (LOCAL rehearsal password for all: `Tessera-demo-1`; the hosted deployment's passwords are kept privately, not in this repository): `kyc@tessera.test`, `support@tessera.test`, `compliance@tessera.test`, `admin@tessera.test`.
 **Aran admin key** (for the console steps): copy it from `/Users/snarunvijay/Documents/hackathons/Aran2/.new-workspace-admin-key` with `pbcopy < /Users/snarunvijay/Documents/hackathons/Aran2/.new-workspace-admin-key` (it never needs to be shown on screen).
 
 ---
@@ -30,10 +30,10 @@ Values are fixed and **verified with the bank's own validators** (`bank/lib/vali
 | Value | Used in step | Check |
 |---|---|---|
 | Landing Aadhaar `343950504654` | 1 | passes Verhoeff |
-| Customer **Anjali Verma**, mobile `7432972377`, Aadhaar `652301019164`, PAN `CFLPH7375C`, card `4247108646585311`, loan ₹150000 | 4 | Aadhaar Verhoeff ✓, card Luhn ✓, mobile ✓, PAN ✓ |
+| Customer **Anjali Testwala**, mobile `7432972377`, Aadhaar `652301019164`, PAN `CFLPH7375C`, card `4111111111111111`, loan ₹150000 | 4 | Aadhaar Verhoeff ✓, card Luhn ✓, mobile ✓, PAN ✓ |
 | Wrong Aadhaar to type once on purpose: `652301019165` | 4 | fails Verhoeff (the last digit is a checksum) |
-| Support complaint: card `4549955977661482`, Aadhaar `402079608370`, mobile `9860183355` | 5 | all valid |
-| Spare customer sets for a second run: **Rohan Iyer** `9617326009` / `986363938813` / `YAOPJ0578A` / `4179350466188048`; **Kavita Menon** `6743012187` / `670917204747` / `VNSPM9157U` / `4615601807485697` | – | all valid |
+| Support complaint: card `4242424242424242`, Aadhaar `402079608370`, mobile `9860183355` | 5 | all valid |
+| Spare customer sets for a second run: **Rohan Demokar** `9617326009` / `986363938813` / `YAOPJ0578A` / `5555555555554444`; **Kavita Sampleton** `6743012187` / `670917204747` / `VNSPM9157U` / `5105105105105100` | – | all valid |
 | More sets: `cd bank && npx tsx ../scripts/demo_values.ts 3` | – | prints fresh verified sets |
 
 Do not use a mobile number that starts with 91 (for example `9180815617`): the bank's validator strips a leading "91" and then rejects it.
@@ -60,8 +60,8 @@ Say: "Signup issues the admin key once; we already created this workspace." Do n
 ### 4. Bank as KYC officer — 2:30 to 5:00 · `http://127.0.0.1:3100/login`
 1. Log in `kyc@tessera.test`. Dashboard: "Welcome, Kavya", counts (Customers, New KYC this week, Open KYC cases, Deposits held) and "Last 10 events" with `<MOBILE:…>` tokens in the log lines. Left nav: **Dashboard, Customers, Accounts**.
 2. **Customers**: the table shows Reference, Name, Aadhaar, Mobile, Status, Since; every identifier is a token chip (names `<PER:…>`, Aadhaar 12 digits, mobile `<MOBILE:…>`). "Nothing here is a real number."
-3. Click **Onboard a customer**. Step 1 of 3 "Identity": Full name `Anjali Verma`, Mobile `7432972377`, **Continue**.
-4. Step 2 of 3 "Identifiers": Aadhaar `652301019165` (wrong on purpose), **Continue** → red inline message "Enter a valid 12-digit Aadhaar (the last digit is a checksum)." Replace with `652301019164`, PAN `CFLPH7375C`, Debit card `4247108646585311`, **Continue**.
+3. Click **Onboard a customer**. Step 1 of 3 "Identity": Full name `Anjali Testwala`, Mobile `7432972377`, **Continue**.
+4. Step 2 of 3 "Identifiers": Aadhaar `652301019165` (wrong on purpose), **Continue** → red inline message "Enter a valid 12-digit Aadhaar (the last digit is a checksum)." Replace with `652301019164`, PAN `CFLPH7375C`, Debit card `4111111111111111`, **Continue**.
 5. Step 3 of 3 "Consent & review": tick the loan-consent box, Loan amount `150000`. The right-hand Night panel "What happens on submit" lists the four destinations (kyc-archive, log-platform, crm, loan-vendor). Click **Onboard customer**.
    - **Expected:** the page jumps to the new customer (`CUS-0000xx`) in well under a second with the green banner **"Customer onboarded. Every identifier below is an Aran token."**
    - **If it does not move, do not click again: see recovery sheet A.**
@@ -73,7 +73,7 @@ Say: "Signup issues the admin key once; we already created this workspace." Do n
 ### 5. Bank as support agent — 5:00 to 5:45
 1. Sign out (top right), log in `support@tessera.test`. Nav: **Dashboard, Customers, Support**. (Open the new customer from Customers if you want to show it is read-only: tokens, no Reveal, no Approve.)
 2. **Support**: Customer reference `CUS-0000xx` (the new one), question:
-   `Customer says card 4549955977661482 was blocked and her Aadhaar 402079608370 is on file. Call 9860183355.` → **Ask**.
+   `Customer says card 4242424242424242 was blocked and her Aadhaar 402079608370 is on file. Call 9860183355.` → **Ask**.
 3. Right-hand Night pane **"What the AI provider saw"**: `Customer says card <CARD_1> was blocked and her Aadhaar <AADHAAR_1> is on file. Call <MOBILE_1>.` and "3 sensitive value(s) replaced before leaving the bank." Left card "Answer to you": starts "You wrote:" with the card shown as `XXXXXXXXXXXX1482` and the Aadhaar masked; the provider line reads "echo stand-in (no external AI call)".
 - **Say it straight:** the agent's own screen shows the mobile number in clear (Aran lets the customer-care role see mobile numbers); the provider and the stored chat never received it.
 - **Proves:** an AI tool can help staff without ever seeing the raw values.
