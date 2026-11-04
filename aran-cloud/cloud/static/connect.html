@@ -8,6 +8,7 @@
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/css/tokens.css">
 <link rel="stylesheet" href="/static/css/system.css">
+<link rel="stylesheet" href="/static/css/connect.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -15,31 +16,64 @@
   <a class="brand" href="/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 36V19a15 15 0 0 1 30 0v17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M11 36V20a9 9 0 0 1 18 0v16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M17 36V21a3 3 0 0 1 6 0v15" fill="currentColor"/></svg>Aran</a>
   <nav class="nav" aria-label="Primary"><a href="/dashboard">Dashboard</a><button class="btn sm icon-btn" data-theme-btn aria-label="Toggle dark mode">◐ Night</button></nav>
 </div></header>
-<main id="main" class="wrap section stack" style="max-width:860px">
-  <h1 style="font-size:2rem">Connect your app</h1>
-  <div id="need-key" hidden class="card">
-    <h2 style="font-size:1.2rem">Paste a key to continue</h2>
+<main id="main" class="wrap connect">
+  <header class="connect-head">
+    <h1>Connect your app.</h1>
+    <p class="lead">Four steps. The last one shows your own test event arriving.</p>
+  </header>
+
+  <div id="need-key" hidden class="plate need-key">
+    <h2>Paste a key to continue</h2>
     <p class="muted small">Use your admin or app-server key. It stays in this browser tab only.</p>
-    <form id="key-form"><div class="field"><label for="k">API key</label><input id="k" type="password" autocomplete="off" placeholder="aran_live_…"></div><button class="btn primary" type="submit">Use this key</button> <span id="key-err" class="small" role="alert" style="color:var(--bad)"></span></form>
-    <p class="small muted" style="margin-top:12px">No workspace yet? <a href="/signup">Create one</a>.</p>
+    <form id="key-form"><div class="field"><label for="k">API key</label><input id="k" type="password" autocomplete="off" placeholder="aran_live_…"></div><button class="btn primary" type="submit">Use this key</button> <span id="key-err" class="small" role="alert"></span></form>
+    <p class="small muted" style="margin:16px 0 0">No workspace yet? <a href="/signup">Get an API key</a>.</p>
   </div>
-  <div id="flow" hidden class="stack">
-    <section class="card" aria-labelledby="s1"><h2 id="s1" style="font-size:1.2rem">1. Put the key on your server</h2>
-      <p class="muted small">Store it as <code>ARAN_APP_KEY</code> in your server environment. Never in browser code, never in <code>NEXT_PUBLIC_*</code>. Your base URL:</p>
-      <div class="keybox"><code id="base"></code><button class="btn sm" data-copy="base" type="button">Copy</button></div>
-    </section>
-    <section class="card" aria-labelledby="s2"><h2 id="s2" style="font-size:1.2rem">2. Add five lines</h2>
-      <div class="tabs" role="tablist" aria-label="Language" id="lang-tabs"></div>
-      <div class="codebox" style="margin-top:12px"><pre id="snippet" tabindex="0"></pre><button class="btn sm" data-copy="snippet" type="button">Copy</button></div>
-      <p class="small muted" style="margin-bottom:0">Fail closed: if the call throws or returns an error, store nothing and return an error to your user.</p>
-    </section>
-    <section class="card" aria-labelledby="s3"><h2 id="s3" style="font-size:1.2rem">3. See the first event arrive</h2>
-      <div class="row"><button class="btn primary" id="test" type="button">Send a test event</button><span class="small muted">Sends one generated sample record with your key.</span></div>
-      <div id="test-out" class="stack" style="margin-top:12px" aria-live="polite"></div>
-      <div id="status" class="banner" style="margin-top:16px" role="status"><span class="dot" aria-hidden="true" style="margin-top:7px"></span><span id="status-text">Waiting for the first event…</span></div>
-      <p class="small muted" style="margin-bottom:0"><a href="/dashboard#overview">Open the dashboard</a> to see everything counted.</p>
-    </section>
-  </div>
+
+  <ol id="flow" hidden class="steps-rail" role="list">
+    <li class="rail-step done" aria-labelledby="s0">
+      <div class="num" aria-hidden="true">01</div>
+      <div class="rail-body">
+        <h2 id="s0">Create a key <span class="done-tag"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Done</span></h2>
+        <p class="muted">You have a key in this tab. For your server, mint an app-server key under <a href="/dashboard#keys">API keys</a> (protect, gateway, trace) and keep the admin key offline.</p>
+      </div>
+    </li>
+    <li class="rail-step" aria-labelledby="s1">
+      <div class="num" aria-hidden="true">02</div>
+      <div class="rail-body">
+        <h2 id="s1">Add the call</h2>
+        <p class="muted">Store the key as <code>ARAN_APP_KEY</code> in your server environment. Never in browser code, never in <code>NEXT_PUBLIC_*</code>. Your base URL:</p>
+        <div class="keybox"><code id="base"></code><button class="btn sm" data-copy="base" type="button" aria-label="Copy base URL">Copy</button></div>
+        <div class="codeblock">
+          <div class="tabs night-tabs" role="tablist" aria-label="Language" id="lang-tabs"></div>
+          <div class="codebox"><pre id="snippet" tabindex="0"></pre><button class="btn sm" data-copy="snippet" type="button" aria-label="Copy code sample">Copy</button></div>
+        </div>
+        <p class="small muted">Fail closed: if the call throws or returns an error, store nothing and return an error to your user.</p>
+        <p class="small limits-note">Your application server sees the raw value briefly before calling Aran. Aran makes sure it is not stored or shared downstream in plaintext.</p>
+      </div>
+    </li>
+    <li class="rail-step" aria-labelledby="s2">
+      <div class="num" aria-hidden="true">03</div>
+      <div class="rail-body">
+        <h2 id="s2">Send a test event</h2>
+        <div class="row"><button class="btn primary" id="test" type="button">Send a test event</button><span class="small muted">Sends one generated sample record with your key.</span></div>
+      </div>
+    </li>
+    <li class="rail-step" aria-labelledby="s3">
+      <div class="num" aria-hidden="true">04</div>
+      <div class="rail-body">
+        <h2 id="s3">Watch it arrive</h2>
+        <div id="test-out" class="stack flight-out" aria-live="polite">
+          <div class="demo placeholder">
+            <div><div class="lbl">Your app sends</div><div class="empty-pre" aria-hidden="true"><i></i><i></i><i></i></div></div>
+            <div><div class="lbl">Your database holds</div><div class="empty-pre" aria-hidden="true"><i></i><i></i><i></i></div></div>
+          </div>
+          <p class="small muted">No payloads yet. Requests sent to <code>/v1/protect</code> or <code>/v1/gateway</code> appear here as they arrive. Send a test event to see yours.</p>
+        </div>
+        <div id="status" class="banner" role="status"><span class="dot" aria-hidden="true"></span><span id="status-text">Waiting for the first event…</span></div>
+        <p class="small muted"><a href="/dashboard#overview">Open the dashboard</a> to see everything counted.</p>
+      </div>
+    </li>
+  </ol>
 </main>
 <script src="/static/js/console.js"></script>
 <script>
