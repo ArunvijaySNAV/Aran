@@ -5,14 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dashboard: Aran Cloud</title>
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/static/css/console.css">
+<link rel="stylesheet" href="/static/css/tokens.css">
+<link rel="stylesheet" href="/static/css/system.css">
+<link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body>
 <a class="skip" href="#view">Skip to content</a>
 
 <main id="signin" class="auth" hidden>
   <div class="card">
-    <a class="brand" href="/" style="margin-bottom:12px"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 4L8 10V22C8 32.5 14.8 42.1 24 44C33.2 42.1 40 32.5 40 22V10L24 4Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M17 34V23C17 19.134 20.134 16 24 16C27.866 16 31 19.134 31 23V34" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="24" r="2" fill="currentColor"/></svg>Aran</a>
+    <a class="brand" href="/" style="margin-bottom:12px"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 36V19a15 15 0 0 1 30 0v17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M11 36V20a9 9 0 0 1 18 0v16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M17 36V21a3 3 0 0 1 6 0v15" fill="currentColor"/></svg>Aran</a>
     <h1 style="font-size:1.5rem">Sign in to your workspace</h1>
     <p class="muted">Paste your dashboard or admin key. It stays in this browser tab and is never put in a URL.</p>
     <form id="signin-form" novalidate>
@@ -25,7 +27,7 @@
 
 <div class="app" id="app" hidden>
   <aside class="side" aria-label="Workspace">
-    <a class="brand" href="/"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 4L8 10V22C8 32.5 14.8 42.1 24 44C33.2 42.1 40 32.5 40 22V10L24 4Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M17 34V23C17 19.134 20.134 16 24 16C27.866 16 31 19.134 31 23V34" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="24" r="2" fill="currentColor"/></svg>Aran</a>
+    <a class="brand" href="/"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 36V19a15 15 0 0 1 30 0v17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M11 36V20a9 9 0 0 1 18 0v16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M17 36V21a3 3 0 0 1 6 0v15" fill="currentColor"/></svg>Aran</a>
     <nav id="nav" aria-label="Sections" style="display:contents"></nav>
     <div class="foot">
       <button class="btn sm" data-theme-btn type="button" aria-label="Toggle dark mode">◐</button>
