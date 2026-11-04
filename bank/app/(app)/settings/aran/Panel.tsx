@@ -53,7 +53,7 @@ export function AranConnectionPanel({ initial }: { initial: ConnectionView }) {
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
       <Card>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><CardTitle>Status</CardTitle><StatusStamp status={view.status} /></div>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><CardTitle>Status</CardTitle><span data-aran-status={view.status}><StatusStamp status={view.status} /></span></div>
         <Diagram view={view} />
         <dl className="mt-5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-5 gap-y-2 text-[15px]">
           <dt className="text-ink2">Workspace</dt><dd className="font-semibold">{view.workspaceName ?? "Not known yet"}</dd>

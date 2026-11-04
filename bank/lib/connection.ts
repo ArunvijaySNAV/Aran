@@ -135,7 +135,7 @@ export async function runChecks(conn: ResolvedConnection, fetchImpl: typeof fetc
   checks.push({ id: "reach", group: "reach", label: `Aran Cloud answers at ${host}`, ok: healthy,
     detail: healthy ? "It answered and reports itself healthy." : health.status === 0 ? `No answer (${health.text}).` : `It answered with HTTP ${health.status}, not "ok".` });
   if (!healthy) {
-    for (const g of ["app", "compliance"] as const) checks.push({ id: `${g}-accepted`, group: g, label: g === "app" ? "App key is accepted" : "Compliance key is accepted", ok: false, detail: "Not tested because Aran Cloud did not answer." });
+    for (const g of ["app", "compliance"] as const) checks.push({ id: `${g}-accepted`, group: g, label: g === "app" ? "App key not tested" : "Compliance key not tested", ok: false, detail: "Aran Cloud did not answer, so the key could not be checked." });
     return { status: "unreachable", workspaceName: null, checks };
   }
 
@@ -145,7 +145,8 @@ export async function runChecks(conn: ResolvedConnection, fetchImpl: typeof fetc
     const key = g === "app" ? conn.appKey : conn.complianceKey;
     const results = await Promise.all(PROBES[g].map(async (p) => ({ p, r: await call(key, p.probe) })));
     const rejected = results.some(({ r }) => r.status === 401);
-    checks.push({ id: `${g}-accepted`, group: g, label: g === "app" ? "App key is accepted" : "Compliance key is accepted", ok: !rejected,
+    const who = g === "app" ? "App key" : "Compliance key";
+    checks.push({ id: `${g}-accepted`, group: g, label: rejected ? `${who} is rejected` : `${who} is accepted`, ok: !rejected,
       detail: rejected ? "Aran says this key is invalid, missing or revoked." : "Aran accepted the key." });
     if (rejected) { anyRejected = true; continue; }
     for (const { p, r } of results) {
@@ -153,7 +154,7 @@ export async function runChecks(conn: ResolvedConnection, fetchImpl: typeof fetc
       if (!ok && r.status === 403) anyMissing = true;
       else if (!ok) anyOther = true;
       if (g === "compliance" && p.id === "dashboard" && ok) { try { workspaceName = String(JSON.parse(r.text)?.tenant?.name ?? "") || null; } catch { workspaceName = null; } }
-      checks.push({ id: `${g}-${p.id}`, group: g, label: `${g === "app" ? "App key" : "Compliance key"} can use ${p.label}`, ok,
+      checks.push({ id: `${g}-${p.id}`, group: g, label: `${who} ${ok ? "can" : "cannot"} use ${p.label}`, ok,
         detail: ok ? "Allowed." : r.status === 403 ? "This key does not have that permission." : r.status === 0 ? `No answer (${r.text}).` : `Aran answered with HTTP ${r.status}.` });
     }
   }

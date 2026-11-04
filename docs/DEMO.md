@@ -13,4 +13,6 @@ Logins (password from `SEED_STAFF_PASSWORD`, default `Tessera-demo-1`): `kyc@`, 
 | 4:15 | Compliance centre: erase the customer. Verify a receipt. Look at "Do the stored tokens still resolve?" | Four signed receipts; every stored token now reads **erased**. |
 | 4:45 | **Admin** > Data plane > **Scan for plaintext**. | "No Verhoeff-valid 12-digit, Luhn-valid 16-digit or Indian mobile number anywhere. Aran tokens are built to fail those checks, so a clean scan is real evidence." |
 
+Setup (before the demo, 30 seconds): **Admin** > **Aran connection**. Paste the Aran Cloud address, the app key and the compliance key, press **Save**. The stamp turns blue ("Connected"), the page names the workspace and lists each check (address answers, each key accepted, each key allowed to protect, use the gateway, trace, reveal, erase, verify). Only the last four characters of each key are ever shown again. If the bank already runs on environment variables, the page says "Environment variables" and **Test connection** checks them. **Disconnect** returns the bank to its environment variables. (Needs `CONNECTION_ENC_KEY`; see docs/DEPLOY.md. Without it the page is read-only.)
+
 Backup: if Aran is down, show onboarding returning **503 and writing nothing** (the fail-closed behaviour).
