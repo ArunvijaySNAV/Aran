@@ -140,3 +140,19 @@ tbody td a { display: inline-flex; min-height: 44px; align-items: center; }
 
 /* primary buttons inside the Night world use the Night token colour so they keep contrast on the navy ground */
 .night button.bg-bank { background: var(--night-token); color: var(--night); }
+
+/* numbers right-aligned on screens >= 640px: the Table marks numeric columns in data-num */
+@media (min-width: 640px) {
+  th[data-numh] { text-align: right; }
+  .stack[data-num~="1"] td:nth-child(1) { text-align: right; font-variant-numeric: tabular-nums; }
+  .stack[data-num~="2"] td:nth-child(2) { text-align: right; font-variant-numeric: tabular-nums; }
+  .stack[data-num~="3"] td:nth-child(3) { text-align: right; font-variant-numeric: tabular-nums; }
+  .stack[data-num~="4"] td:nth-child(4) { text-align: right; font-variant-numeric: tabular-nums; }
+  .stack[data-num~="5"] td:nth-child(5) { text-align: right; font-variant-numeric: tabular-nums; }
+  .stack[data-num~="6"] td:nth-child(6) { text-align: right; font-variant-numeric: tabular-nums; }
+  .stack[data-num~="7"] td:nth-child(7) { text-align: right; font-variant-numeric: tabular-nums; }
+  .stack[data-num~="8"] td:nth-child(8) { text-align: right; font-variant-numeric: tabular-nums; }
+}
+
+/* Portal secret slip (markup in app/portal/Portal.tsx sits in the guard's protected region, so it is styled here): ink-outlined, larger mono */
+#secret { background: var(--stock); padding: 16px; font-size: 17px; border-radius: 8px; box-shadow: inset 0 0 0 2px var(--ink); }

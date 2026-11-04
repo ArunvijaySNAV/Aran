@@ -18,12 +18,12 @@ export default async function Vendor() {
   return (
     <div className="space-y-6">
       <PageHead title="Loan vendor export" sub="Consented leads go to the lending partner as loan-vendor tokens only." />
-      <Card className="flex flex-wrap items-center justify-between gap-3"><div><div className="text-3xl font-bold tabular-nums">{n}</div><div className="text-sm text-muted">new consented leads waiting</div></div><ExportButton disabled={n === 0} /></Card>
+      <Card className="flex flex-wrap items-center justify-between gap-4"><div><div className="w-expanded tabular text-[clamp(40px,5vw,64px)] leading-none">{n}</div><div className="mt-2 text-[15px] font-semibold">New consented leads waiting</div></div><ExportButton disabled={n === 0} /></Card>
       <Card><CardTitle>Export batches</CardTitle>
         {batches.length === 0 ? <Empty title="No exports yet">Build the first export once a customer consents to a loan offer during onboarding.</Empty> : batches.map((b) => (
-          <div key={b.id} className="mb-6 space-y-3 border-b border-line pb-6 last:mb-0 last:border-0 last:pb-0">
-            <div className="flex flex-wrap items-center justify-between gap-2"><div className="font-semibold">{when(b.createdAt)} · {b.rowCount} row(s)</div><a className="text-sm underline" download={`loan-vendor-${b.id}.csv`} href={`data:text/csv;charset=utf-8,${encodeURIComponent(b.csv)}`}>Download CSV</a></div>
-            <pre className="max-h-40 overflow-auto rounded-lg bg-surface2 p-3 text-xs">{b.csv.split("\n").slice(0, 4).join("\n")}</pre>
+          <div key={b.id} className="mb-6 space-y-3 border-b border-rule pb-6 last:mb-0 last:border-0 last:pb-0">
+            <div className="flex flex-wrap items-center justify-between gap-2"><div className="font-semibold">{when(b.createdAt)} · {b.rowCount} {b.rowCount === 1 ? "row" : "rows"}</div><a className="inline-flex min-h-11 items-center text-[15px] font-semibold underline" download={`loan-vendor-${b.id}.csv`} href={`data:text/csv;charset=utf-8,${encodeURIComponent(b.csv)}`}>Download CSV</a></div>
+            <pre tabIndex={0} aria-label="CSV preview" className="night max-h-40 overflow-auto rounded-[8px] p-3 font-mono text-[12px] leading-relaxed">{b.csv.split("\n").slice(0, 4).join("\n")}</pre>
             <Breach batchId={b.id} />
           </div>
         ))}</Card>

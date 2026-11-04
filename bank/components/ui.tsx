@@ -2,6 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Guilloche } from "@/components/aran/Guilloche";
+import { cloneElement, isValidElement } from "react";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
 export const cn = (...a: ClassValue[]) => twMerge(clsx(a));
@@ -35,9 +36,9 @@ export function Field({ label, htmlFor, error, hint, children }: { label: string
   return (
     <div className="space-y-1.5">
       <label htmlFor={htmlFor} className="block text-[15px] font-medium text-ink2">{label}</label>
-      {children}
+      {error && isValidElement<{ "aria-describedby"?: string }>(children) && !children.props["aria-describedby"] ? cloneElement(children, { "aria-describedby": `${htmlFor}-err` }) : children}
       {/* fixed-height message slot: a field error appearing or clearing must never move the controls below it */}
-      <div className="min-h-7">
+      <div className="min-h-5">
         {error ? <p id={`${htmlFor}-err`} role="alert" className="flex items-start gap-1.5 text-[14px] font-medium text-attention"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="mt-0.5 shrink-0"><path d="M8 1.5l7 12.5H1L8 1.5z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /><path d="M8 6.5v3.2M8 11.6v.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>{error}</p> : hint ? <p className="text-[13px] text-ink2">{hint}</p> : null}
       </div>
     </div>
@@ -85,9 +86,9 @@ export function Table({ head, children, label }: { head: string[]; children: Rea
   const labels = Object.fromEntries(head.map((h, i) => [`--h${i + 1}`, JSON.stringify(h)])) as React.CSSProperties;
   return (
     <div className="stack-wrap max-h-[70vh] overflow-auto rounded-[8px] border-[1.5px] border-rule bg-bond">
-      <table aria-label={label} style={labels} className="stack w-full border-collapse text-[15px]">
-        <thead><tr>{head.map((h) => <th key={h} scope="col" className="sticky top-0 whitespace-nowrap border-b-[1.5px] border-rule bg-bond px-3 py-2.5 text-left text-[13px] font-semibold text-ink2 [font-stretch:80%]">{h}</th>)}</tr></thead>
-        <tbody className="[&_td]:min-h-11 [&_td]:border-b [&_td]:border-rule [&_td]:px-3 [&_td]:py-2.5 [&_td]:align-top [&_tr:last-child_td]:border-b-0">{children}</tbody>
+      <table aria-label={label} style={labels} data-num={head.map((h, i) => (/^(balance|amount|deposits?|₹)/i.test(h) ? i + 1 : 0)).filter(Boolean).join(" ") || undefined} className="stack w-full border-collapse text-[15px]">
+        <thead><tr>{head.map((h) => <th key={h} scope="col" data-numh={/^(balance|amount|deposits?|₹)/i.test(h) ? "" : undefined} className="sticky top-0 whitespace-nowrap border-b-[1.5px] border-rule bg-bond px-3 py-2.5 text-left text-[13px] font-semibold text-ink2 [font-stretch:80%]">{h}</th>)}</tr></thead>
+        <tbody className="[&_td]:min-h-11 [&_td]:border-b [&_td]:border-rule [&_td]:px-3 [&_td]:py-2.5 [&_td]:align-middle [&_tr:last-child_td]:border-b-0">{children}</tbody>
       </table>
     </div>
   );
