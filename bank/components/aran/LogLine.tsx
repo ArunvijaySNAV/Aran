@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import { TokenChip } from "./Chips";
 
-/** Renders a redacted log line with each Aran placeholder such as <MOBILE:vec884105dc> as a token chip. Text only, no data is changed. */
+/** Renders a redacted log line with each Aran placeholder such as <MOBILE:vec884105dc> or <CARD_1> as a token chip. Text only, no data is changed. */
 export function LogLine({ text }: { text: string }) {
   const parts: ReactNode[] = [];
-  const re = /<([A-Z_]+):([^>\s]+)>/g;
+  const re = /<([A-Z]+(?:_[A-Z]+)*)(?::[^>\s]+|_\d+)>/g;
   let last = 0;
   for (let m = re.exec(text); m; m = re.exec(text)) {
     if (m.index > last) parts.push(text.slice(last, m.index));

@@ -59,7 +59,7 @@ const bannerIcon = {
   neutral: <><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M8 7.2v4M8 4.8v.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></>,
 };
 export const Banner = ({ tone = "neutral", children, role }: { tone?: "ok" | "warn" | "bad" | "neutral"; children: ReactNode; role?: string }) => (
-  <div role={role} className={cn("block rounded-[8px] border-[1.5px] px-4 py-3 text-[15px]", tone === "ok" && "border-seal bg-sealsoft text-seal", (tone === "warn" || tone === "bad") && "border-attention bg-attentionsoft text-attention", tone === "neutral" && "border-rule bg-bond text-ink")}>
+  <div role={role} className={cn("block rounded-[8px] border-[1.5px] px-4 py-3 text-[15px]", tone === "ok" && "border-token bg-tokenbg text-token", (tone === "warn" || tone === "bad") && "border-attention bg-attentionsoft text-attention", tone === "neutral" && "border-rule bg-bond text-ink")}>
     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="float-left mr-2.5 mt-1 shrink-0">{bannerIcon[tone === "bad" ? "warn" : tone]}</svg>
     {children}
   </div>
@@ -92,7 +92,7 @@ export function Table({ head, children, label }: { head: string[]; children: Rea
     </div>
   );
 }
-export const Mono = ({ children }: { children: ReactNode }) => <code className="break-all font-mono text-[12px] font-medium">{children}</code>;
+export const Mono = ({ children }: { children: ReactNode }) => <code className="font-mono text-[12px] font-medium [overflow-wrap:break-word]">{children}</code>;
 export const rupees = (paise: number) => "₹" + (paise / 100).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 /** "03 Nov 2026, 14:05" in IST, 24-hour (DESIGN.md section 9). */
 export const when = (d: Date | string) => new Date(d).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Kolkata" });

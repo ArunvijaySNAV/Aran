@@ -33,3 +33,15 @@ None yet. `DESIGN.md` wins over any detector rule that contradicts it (guilloche
 - No test selectors edited. Detector (`impeccable detect`) on login, dashboard, layout, components, globals.css: no findings.
 - Tables now stack into labelled cards under 640 px through CSS only (`.stack` in `app/globals.css`, header text passed as `--hN` from `components/ui.tsx`), so every bank table gets it.
 - Archivo `@font-face` urls moved to `app/fonts/` (see gap 13).
+
+## Bank Screens 7 and 8: audit (impeccable audit, own step list)
+Dimensions scored on the two screens (customers list/detail with Reveal; compliance with the erasure certificate), from the B-agent measurements, the detector (`[]`), the bank Playwright (no console errors, no horizontal scroll) and a source scan:
+| Dimension | Score | Key finding |
+|---|---|---|
+| Accessibility | 3 | Contrast all AA (lowest: token chip 5.83, raw chip 5.13). Focus drops to body after Reveal open/submit/hide and after Verify receipt (protected handlers, gap 17). Struck "erased" chips were 2.86:1 at opacity .55: fixed (no opacity, a 2 px strike line instead). Placeholder 4.35: fixed (opacity .95). |
+| Performance | 4 | Animations are transform/opacity only, one-shot. |
+| Theming | 4 | No hard-coded colours in the two screens; Night ledger uses the `.night` token remap. Old aliases (`text-muted`) remain in Chat/Reveal markup that is protected or on later screens. |
+| Responsive | 3 | Tables stack to labelled cards under 640 px; links in cells are now 44 px; Reveal overflow at 390 px found by the bank Playwright and fixed. |
+| Implementation integrity | 3 | One selector-driven CSS rule styles Reveal's protected markup (gap 16). |
+Total 17/20 (good). Reduced motion: the blanket `animation-duration: .001ms` rule in `app/globals.css` is kept deliberately: every bank animation is one-shot and gated to `no-preference` with its end state as the static style, so nothing is lost. If the detector or a reviewer flags that rule, it is a documented exception, not a defect.
+Fixes applied from the audit: struck-chip contrast, placeholder contrast, 44 px cell links, Certificate type floor (13 px). No new detector exceptions.

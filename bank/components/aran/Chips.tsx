@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 /** Token chip: Martian Mono 12, 4px radius, 1.5px outline. Seal blue on light, periwinkle on Night. Blue means protected. */
 export function TokenChip({ children, title, className = "" }: { children: ReactNode; title?: string; className?: string }) {
   return (
-    <code title={title} className={`inline-block max-w-full break-all rounded-[4px] bg-tokenbg px-2 py-[3px] align-middle font-mono text-[12px] font-medium leading-snug text-token shadow-[inset_0_0_0_1.5px_var(--token)] ${className}`}>
+    <code title={title} className={`inline-block max-w-full rounded-[4px] bg-tokenbg px-2 py-[3px] align-middle font-mono text-[12px] font-medium leading-snug text-token shadow-[inset_0_0_0_1.5px_var(--token)] [overflow-wrap:break-word] ${className}`}>
       {children}
     </code>
   );
