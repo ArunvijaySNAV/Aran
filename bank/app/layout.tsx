@@ -10,6 +10,7 @@ const martian = localFont({
   declarations: [{ prop: "font-stretch", value: "75% 112.5%" }],
 });
 
+export const viewport = { themeColor: "#0B5A49", viewportFit: "cover" as const };
 export const metadata: Metadata = { title: { default: "Tessera Bank", template: "%s · Tessera Bank" }, description: "Tessera Bank staff console (fictional demo bank)" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

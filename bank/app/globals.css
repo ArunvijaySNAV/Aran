@@ -99,8 +99,8 @@ table { font-size: 15px; }
   .stack-wrap { max-height: none; overflow: visible; border: 0; background: transparent; }
   .stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .stack, .stack tbody, .stack tr, .stack td { display: block; }
-  .stack tr { margin-bottom: 10px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--bond); padding: 6px 0; }
-  .stack td { overflow-wrap: anywhere; display: grid; grid-template-columns: minmax(5.5rem, 7.5rem) minmax(0, 1fr); gap: 4px 12px; border: 0; padding: 6px 14px; }
+  .stack tr { min-width: 0; overflow: hidden; margin-bottom: 10px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--bond); padding: 6px 0; }
+  .stack td { overflow-wrap: anywhere; word-break: break-word; min-width: 0; display: grid; grid-template-columns: minmax(5.5rem, 7.5rem) minmax(0, 1fr); gap: 4px 12px; border: 0; padding: 6px 14px; }
   .stack td > * { justify-self: start; max-width: 100%; min-width: 0; }
   .stack td::before { color: var(--ink-2); font-size: 12px; font-weight: 600; font-stretch: 80%; padding-top: 2px; }
   .stack td:nth-child(1)::before { content: var(--h1, ""); } .stack td:nth-child(2)::before { content: var(--h2, ""); }
@@ -156,3 +156,13 @@ tbody td a { display: inline-flex; min-height: 44px; align-items: center; }
 
 /* Portal secret slip (markup in app/portal/Portal.tsx sits in the guard's protected region, so it is styled here): ink-outlined, larger mono */
 #secret { background: var(--stock); padding: 16px; font-size: 17px; border-radius: 8px; box-shadow: inset 0 0 0 2px var(--ink); }
+
+/* guideline fixes: no double-tap delay, scroll under the sticky header, native controls follow the theme */
+a, button, input, select, textarea, summary { touch-action: manipulation; }
+html { scroll-padding-top: 72px; color-scheme: light; }
+.night { color-scheme: dark; }
+@media (max-width: 767.98px) { aside[class*="fixed"] { padding-bottom: calc(.5rem + env(safe-area-inset-bottom)); } }
+
+/* long unbroken text (names, ids, tokens) wraps instead of pushing the page sideways */
+body { overflow-wrap: break-word; }
+h1, h2, h3, p, li, label, dd, dt, summary, .edge { overflow-wrap: anywhere; min-width: 0; }

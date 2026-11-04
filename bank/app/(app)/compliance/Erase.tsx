@@ -22,7 +22,7 @@ export function EraseForm() {
   return (
     <div className="space-y-4">
       <form action={action} className="space-y-4" noValidate>
-        <Field label="Customer reference" htmlFor="er-ref"><Input id="er-ref" name="ref" placeholder="CUS-000001" required /></Field>
+        <Field label="Customer reference" htmlFor="er-ref"><Input id="er-ref" name="ref" placeholder="e.g. CUS-000001…" required /></Field>
         <Field label="Type the reference again to confirm" htmlFor="er-confirm" error={s.fieldErrors?.confirm} hint="Erasure destroys the keys for KYC, Loans, Service and Marketing. It cannot be undone."><Input id="er-confirm" name="confirm" autoComplete="off" required /></Field>
         {s.message && !s.fieldErrors?.confirm ? <Banner tone="bad" role="alert">{s.status === 503 ? "Service unavailable (503). " : ""}{s.message}{s.status === 503 ? " Nothing was erased." : ""}</Banner> : null}
         <Button variant="danger" disabled={pending}>{pending ? "Erasing…" : "Erase this customer's data"}</Button>

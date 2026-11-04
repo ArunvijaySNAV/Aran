@@ -15,7 +15,7 @@
 .rail-body > * + * { margin-top: 16px; }
 .rail-body p { margin-bottom: 0; }
 .rail-body .small { font-size: 15px; }
-.limits-note { padding: 12px 16px; border-left: 3px solid var(--ink); background: var(--bond); color: var(--ink); }
+.limits-note { padding: 12px 16px; border: 1.5px solid var(--ink); border-radius: 8px; background: var(--bond); color: var(--ink); }
 @media (max-width: 640px) { .rail-step { grid-template-columns: 1fr; gap: 8px; } .rail-step .num { font-size: 40px; } }
 
 /* code tabs: Night, as on the landing */

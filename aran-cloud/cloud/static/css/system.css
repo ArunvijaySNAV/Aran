@@ -161,3 +161,11 @@ dialog::backdrop { background: rgba(12, 26, 43, .6); }
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
   .skel { animation: none; }
 }
+
+/* touch: no double-tap zoom delay on controls */
+a, button, input, select, textarea, summary { touch-action: manipulation; }
+html { scroll-padding-top: 72px; }
+
+/* long unbroken text wraps instead of pushing the page sideways */
+body { overflow-wrap: break-word; }
+h1, h2, h3, p, li, label, dd, dt, summary { overflow-wrap: anywhere; }

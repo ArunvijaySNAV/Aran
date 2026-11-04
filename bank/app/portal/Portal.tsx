@@ -37,7 +37,7 @@ export function MyDataPanel() {
       {!d ? (
         <form action={view} noValidate className="space-y-4" onSubmit={(e) => { secretRef.current = String(new FormData(e.currentTarget).get("secret") ?? ""); }}>
           {v.message ? <Banner tone="bad" role="alert">{v.message}</Banner> : null}
-          <Field label="Customer reference" htmlFor="m-ref"><Input id="m-ref" name="ref" placeholder="e.g. CUS-000001" autoComplete="off" /></Field>
+          <Field label="Customer reference" htmlFor="m-ref"><Input id="m-ref" name="ref" placeholder="e.g. CUS-000001…" autoComplete="off" /></Field>
           <Field label="Portal secret" htmlFor="m-secret"><Input id="m-secret" name="secret" type="password" autoComplete="off" /></Field>
           <Button disabled={viewing} className="w-full">{viewing ? "Checking…" : "Show my data"}</Button>
         </form>

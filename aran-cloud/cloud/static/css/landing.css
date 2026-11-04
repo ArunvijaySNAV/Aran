@@ -82,7 +82,7 @@ pre.light .raw { color: var(--stamp); background: var(--stamp-soft); border-radi
 .ledger .sub { color: var(--night-dim); font-size: 15px; margin: 0 0 14px; }
 .lrow { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 12px 0; border-top: 1px solid var(--night-line); }
 .lrow .pill { color: var(--night-text); box-shadow: inset 0 0 0 1px var(--night-dim); }
-.tk { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--night-token); background: var(--night-token-bg); border-radius: 4px; padding: 3px 8px; box-shadow: inset 0 0 0 1.5px var(--night-token); transition: all .6s var(--ease); }
+.tk { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--night-token); background: var(--night-token-bg); border-radius: 4px; padding: 3px 8px; box-shadow: inset 0 0 0 1.5px var(--night-token); transition: color .6s var(--ease), background-color .6s var(--ease), box-shadow .6s var(--ease); }
 .tk.gone { color: var(--night-dim); background: transparent; box-shadow: inset 0 0 0 1.5px var(--night-line); filter: blur(2.5px); text-decoration: line-through; letter-spacing: .2em; }
 .ledger .btn { margin-top: 18px; width: 100%; }
 .ledger [role=status] { margin: 12px 0 0; color: var(--night-dim); min-height: 20px; }

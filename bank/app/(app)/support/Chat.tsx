@@ -11,7 +11,7 @@ export function Chat() {
       <div className="space-y-5">
         <form action={action} className="space-y-4" noValidate>
           <input type="hidden" name="conversationId" value={s.data?.conversationId ?? ""} />
-          <Field label="Customer reference (optional)" htmlFor="ref"><Input id="ref" name="ref" placeholder="e.g. CUS-000001" /></Field>
+          <Field label="Customer reference (optional)" htmlFor="ref"><Input id="ref" name="ref" placeholder="e.g. CUS-000001…" /></Field>
           <Field label="Ask the assistant" htmlFor="prompt" error={s.fieldErrors?.prompt} hint="Paste real-looking customer details if you like: the provider never sees them."><Textarea id="prompt" name="prompt" required aria-invalid={!!s.fieldErrors?.prompt} /></Field>
           <Button variant="primary" disabled={pending}>{pending ? "Asking…" : "Ask"}</Button>
         </form>

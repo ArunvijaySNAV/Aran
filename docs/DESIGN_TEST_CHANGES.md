@@ -57,3 +57,11 @@ Evidence: critique-B agents (Screens 9, 10, 11 partial, 13; Screen 12 ran on my 
 | 13 Portal | 3 | 4 | 4 | 4 | 2 | 17 | Field errors linked by aria-describedby (all forms); focus after validation lost (gap 23); registered-slip markup protected (gap 22). |
 Fixes applied from the audits: always-mounted live regions (Scan, Breach), aria-describedby from `Field`, numeric alignment, 44 px links in cells, dim "—" for empty cells. No new detector exceptions. The blanket reduced-motion rule from the Screen 7 and 8 audit still applies.
 Environment note: running several review agents against the dev server exhausted the local Postgres connection slots ("remaining connection slots are reserved"), which made staff sign-in return "Email or password is not right." for them and for my capture script. Restarting the dev server on 3000 released them; no data was changed.
+
+## Phase 4: detector across everything (`impeccable detect`, bank + console)
+8 findings, all documented exceptions or false positives:
+- `cramped-padding` ×2 on `.table-wrap` in `index.html`: false positive (see landing notes).
+- `repeating-stripes-gradient` ×2 (`index.html`, `connect.html`): the dashed flight-boundary and microprint stripes of DESIGN.md sections 5 and 8.2.
+- `all-caps-body` in `signup.html`: decorative key-slip microprint, `aria-hidden`.
+- `bounce-easing` ×2 (`landing.css`, `signup.css`): the seal-slam overshoot of DESIGN.md section 8.3 (scale 2.3 → 1 with overshoot).
+- `side-tab` in `connect.css` was real (a 3 px left border on the limits note): fixed, now a full 1.5 px outlined box.
