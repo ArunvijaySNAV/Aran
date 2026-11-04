@@ -73,3 +73,9 @@ All in `docs/DESIGN_TEST_CHANGES.md`: microprint tracking and contrast (decorati
 - The review agents for Screens 11 and 12 could not complete their runtime checks (see `docs/DESIGN_TEST_CHANGES.md`); my own measurements covered Screen 12 and the Screen 11 breach state was verified in screenshots and Playwright.
 - The Vercel review is rule-by-rule plus a line-by-line read of 5 files, not a line-by-line read of every file.
 - Presenter mode was verified with Playwright, not by a person presenting on a projector.
+
+## Final reseed (last step, after all tests)
+Procedure as before: `pg_dump` of the bank schemas first (`docs/backups/bank-final-20261104-175035.sql`, 1.1 MB, git-excluded), then `supabase db reset` against the local stack only (database URL host 127.0.0.1:54322), `npm run migrate`, `scripts/bank-run.sh seed.ts` with the Aran stack running under the bank's workspace. No Playwright, vitest or other data-writing check was run after it; the bank on :3100 was restarted so it reconnects, and only read-only checks followed.
+
+Final row counts: customers 25, accounts 13, transactions 26, kyc_cases 25, staff 4, reveals 0, erasure_requests 0, crm.contacts 25, log_platform.app_logs 38, vendor_share.loan_leads 5, export_batches 0, ai_chat conversations 0, messages 0.
+Read-only checks after the reseed: the four staff logins (kyc, support, compliance, admin) each returned HTTP 200 from the Supabase password grant; plaintext scan `PASS: no raw Aadhaar, card or mobile found`; production bank on :3100 returns 200.
