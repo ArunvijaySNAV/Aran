@@ -7,7 +7,8 @@ h1, h2, h3 { font-family: var(--font-display); line-height: 1.04; margin: 0 0 .5
 h1 { font-size: clamp(40px, 5.3vw, 78px); font-stretch: 106%; line-height: 1; }
 h2 { font-size: clamp(32px, 4.2vw, 56px); }
 h3 { font-size: 19px; font-weight: 700; font-stretch: 100%; letter-spacing: 0; line-height: 1.2; }
-p { margin: 0 0 1em; }
+p { margin: 0 0 1em; text-wrap: pretty; }
+h1, h2, h3 { text-wrap: balance; }
 a { color: var(--text); text-underline-offset: 4px; }
 code, pre, .mono { font-family: var(--mono); font-size: .8em; }
 img, svg { max-width: 100%; }

@@ -1,5 +1,7 @@
 /* Dashboard shell: sidebar 248px, active item = ink fill with white text (DESIGN.md section 6). */
-.app { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+.app { display: grid; grid-template-columns: 248px minmax(0, 1fr); grid-template-rows: auto 1fr; min-height: 100vh; }
+.app > .main { grid-row: 1 / -1; grid-column: 2; }
+.app > .side { grid-row: 1 / -1; }
 .side { background: var(--bond); border-right: 1.5px solid var(--ink); padding: 16px 12px; position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
 .side .brand { padding: 4px 10px 18px; }
 .side a.item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: var(--ink-2); text-decoration: none; font-weight: 600; font-size: 15px; min-height: 44px; }
@@ -11,7 +13,8 @@ html[data-theme=dark] .side a.item[aria-current=page] { background: var(--night-
 .main { padding: 28px 40px 72px; min-width: 0; }
 .main > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1.5px solid var(--ink); }
 .main h1 { font-size: clamp(30px, 3.4vw, 46px); margin: 0; font-stretch: 108%; }
-@media (max-width: 1024px) { .app { grid-template-columns: 1fr; } .main { padding: 24px 24px 72px; } }
+.main > header .small { font-size: 15px; margin-top: 8px; color: var(--ink-2); }
+@media (max-width: 1024px) { .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; } .app > .main { grid-row: 2; grid-column: 1; } .app > .side { grid-row: 1; } .main { padding: 24px 24px 72px; } }
 @media (max-width: 1024px) {
   .side { position: sticky; top: 0; z-index: 30; height: auto; flex-direction: row; align-items: center; overflow-x: auto; padding: 8px; border-right: 0; border-bottom: 1.5px solid var(--ink); gap: 4px; }
   .side .brand { padding: 0 8px 0 4px; }
