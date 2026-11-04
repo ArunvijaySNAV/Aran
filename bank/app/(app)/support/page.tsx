@@ -4,6 +4,7 @@ import { PageHead } from "@/components/PageHead";
 import { getDb } from "@/db";
 import * as t from "@/db/schema";
 import { requireSession } from "@/lib/auth";
+import { LogLine } from "@/components/aran";
 import { Chat } from "./Chat";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,7 @@ export default async function Support() {
       <Banner tone="neutral">The AI provider in use (an external model, or Aran&apos;s echo stand-in that makes no external call) is named under every answer, next to a panel showing exactly what it received.</Banner>
       <Card><Chat /></Card>
       <Card><CardTitle>Stored conversation lines (redacted)</CardTitle>
-        {recent.length === 0 ? <Empty title="Nothing stored yet" /> : <ul className="space-y-2 text-sm">{recent.map((m) => <li key={m.id} className="break-words rounded bg-surface2 px-3 py-2">{m.content}</li>)}</ul>}</Card>
+        {recent.length === 0 ? <Empty title="Nothing stored yet">Questions asked above appear here, already redacted.</Empty> : <ul className="space-y-2 text-[15px]">{recent.map((m) => <li key={m.id} className="break-words rounded-[8px] bg-stock px-3 py-2 shadow-[inset_0_0_0_1px_var(--rule)]"><LogLine text={m.content} /></li>)}</ul>}</Card>
     </div>
   );
 }
