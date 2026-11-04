@@ -18,12 +18,12 @@ export default async function Accounts({ searchParams }: { searchParams: Promise
   return (
     <div className="space-y-6">
       <PageHead title="Accounts" sub="Deposits, withdrawals and transfers with balance checks." />
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <Card><CardTitle>Recent accounts</CardTitle>
           {rows.length === 0 ? <Empty title="No accounts yet">Open the first account with the form.</Empty> : (
-            <Table label="Accounts" head={["Account", "Customer", "Type", "Balance"]}>{rows.map(({ a, ref: r }) => <tr key={a.id}><td><Link className="font-semibold underline" href={`/accounts/${a.accountNo}`}>{a.accountNo}</Link></td><td><Link className="underline" href={`/customers/${r}`}>{r}</Link></td><td>{a.type}</td><td className="tabular-nums">{rupees(a.balancePaise)}</td></tr>)}</Table>
+            <Table label="Accounts" head={["Account", "Customer", "Type", "Balance"]}>{rows.map(({ a, ref: r }) => <tr key={a.id}><td><Link className="font-semibold underline" href={`/accounts/${a.accountNo}`}>{a.accountNo}</Link></td><td><Link className="underline" href={`/customers/${r}`}>{r}</Link></td><td className="capitalize">{a.type}</td><td className="tabular-nums">{rupees(a.balancePaise)}</td></tr>)}</Table>
           )}</Card>
-        <Card><CardTitle>Open an account</CardTitle>{writer ? <OpenAccountForm defaultRef={ref} /> : <p className="text-sm text-muted">Your role has read-only access to accounts.</p>}</Card>
+        <Card><CardTitle>Open an account</CardTitle>{writer ? <OpenAccountForm defaultRef={ref} /> : <p className="text-[15px] text-ink2">Your role has read-only access to accounts.</p>}</Card>
       </div>
     </div>
   );
