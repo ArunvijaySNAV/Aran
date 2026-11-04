@@ -3,13 +3,13 @@
   "payload": "name+Aadhaar+mobile+card+PAN (5 fields, enrolled customer_ref)",
   "n": 120,
   "client_ms": {
-    "p50": 6.5,
-    "p95": 9.9,
-    "mean": 7.2
+    "p50": 6.9,
+    "p95": 9.1,
+    "mean": 7.0
   },
   "core_ms": {
-    "p50": 1.1,
-    "p95": 1.4
+    "p50": 1.0,
+    "p95": 1.2
   },
   "fields_protected": {
     "of": 5,
@@ -17,6 +17,6 @@
     "mean": 4.95,
     "requests_with_all_5": 114
   },
-  "measured_at": "2026-11-04 22:53:34",
+  "measured_at": "2026-11-04 12:27:09",
   "path": "client -> cloud(8100) -> core(8000), localhost, sequential"
 }
