@@ -101,3 +101,10 @@ Repeating the same procedure will **not** be enough on its own:
 
 ## Data written by this investigation
 Vendor batch (5 leads exported), 2 reveals (CUS-000005 Aadhaar and mobile), erasure of CUS-000006 (4 receipts), about 44 customers, accounts and a chat message from the Playwright runs and probes, plus extra Aran audit rows. Throwaway local scripts are in `/private/tmp/b/` and are not part of the repository.
+
+## Fix applied on branch `fix-registry-restart` (approved)
+- `aran-cloud/cloud/main.py`: the startup cleanup now goes through `purge_gateway_placeholders(conn)`, which deletes `tenant_tokens` rows only when the token matches `<[A-Z]+_[0-9]+>` exactly (Python `re.fullmatch`, not SQL `LIKE`, where `_` is a wildcard). `<CARD_1>`, `<AADHAAR_1>`, `<MOBILE_1>` go; `<MOBILE:v…>`, `<PAN:v…>`, `<PER:…>`, `<UPI:…>` and numeric tokens stay.
+- New unit test `aran-cloud/cloud/test_registry_cleanup.py` (2 tests, no running stack): seeds real tokens of every type, placeholders and look-alikes (`<MOBILE_>`, `<card_1>`, `<MOBILE_1>x`, `<MOBILE:_1>`, …) in two tenants, runs the cleanup, and runs `init_db()` twice (what every cloud start does). It fails on the old code and passes on the new code.
+- Smoke test: new step 13 (existing steps unchanged). Before step 12's restart it protects a mobile and a PAN with the `loan-vendor` sink; after the restart it traces a CSV-style dump containing both tokens (expects 2 matched, top sink `loan-vendor`) and detokenises both to the original values. Run against the old `main.py` it fails with `Both pre-restart tokens (mobile, PAN) are still recognised as ours: expected 2, got 0`; against the fix it passes.
+- Suite counts on the branch (same commands as the baseline): research and core 64 passed, 1 skipped (baseline 64/1); cloud security and tenant isolation 23 passed (baseline 23); cloud smoke all 13 steps (baseline 12; the added step is the new one); new unit tests 2 passed.
+- Not repaired: rows already deleted from existing tenants' `tenant_tokens`. The fix prevents further loss; the existing demo workspace was replaced by a fresh one (see below).

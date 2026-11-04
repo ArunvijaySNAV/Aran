@@ -9,6 +9,7 @@ Validates:
 5. Cross-Tenant Owner Isolation Safeguards: zero leakage of customer_refs across tenants.
 6. Erasure & Receipt Storage: Ed25519 + ML-DSA-65 receipts stored and verified.
 7. Restart Persistence: kills and restarts Aran Cloud process; verifies keys and metrics persist.
+8. After the restart: a batch with a mobile and a PAN token issued before it still traces, and both tokens still detokenise.
 """
 
 import os
@@ -313,6 +314,18 @@ def main():
 
     # 12. Restart Persistence Test
     print_step(12, "Test restart persistence across process reboot")
+    # Tokens issued BEFORE the restart for step 13: a loan-lead style batch with a mobile and a PAN (placeholder-form tokens)
+    import random as _rnd
+    _L = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    pre_pan = "".join(_rnd.choice(_L) for _ in range(3)) + "P" + _rnd.choice(_L) + "".join(str(_rnd.randint(0, 9)) for _ in range(4)) + _rnd.choice(_L)
+    pre_mobile = sample["mobile"]
+    r_pre = requests.post(f"{CLOUD_URL}/v1/protect", headers={"X-API-Key": api_key}, json={
+        "text": f"Loan lead: mobile {pre_mobile}, PAN {pre_pan}", "customer_ref": "CUST-SMK-RST", "purpose": "Loans", "sink": "loan-vendor"
+    }, timeout=10)
+    assert_eq(r_pre.status_code, 200, "Pre-restart protect of a mobile and a PAN (loan-vendor sink)")
+    pre_tokens = {f["type"]: f["token"] for f in r_pre.json()["findings"] if f.get("protected") and f.get("token")}
+    assert_true("MOBILE" in pre_tokens and "PAN" in pre_tokens, "Mobile and PAN were tokenised before the restart", pre_tokens)
+    assert_true(pre_tokens["MOBILE"].startswith("<") and pre_tokens["PAN"].startswith("<"), "These tokens are placeholder-form (<TYPE:...>), the kind a LIKE '<%>%' cleanup would delete")
     print("  ▶ Restarting Aran Cloud process...")
     # Find PID on port 8100
     pid_res = subprocess.run(["lsof", "-Pi", ":8100", "-sTCP:LISTEN", "-t"], capture_output=True, text=True)
@@ -345,8 +358,21 @@ def main():
     assert_true(persist_data["metrics"]["identifiers_protected"] >= 2, "Metrics preserved across reboot")
     assert_true(persist_data["metrics"]["receipts_count"] >= 1, "Erasure receipts preserved in cloud.db")
 
+    # 13. Placeholder-form tokens issued before the restart still trace and reveal after it
+    print_step(13, "After the restart: trace an exported batch and detokenise a mobile and a PAN token issued before it")
+    dump = "customer_ref,mobile_token,pan_token\nCUST-SMK-RST," + pre_tokens["MOBILE"] + "," + pre_tokens["PAN"]
+    r_trace = requests.post(f"{CLOUD_URL}/v1/trace", headers={"X-API-Key": api_key}, json={"dump": dump}, timeout=10)
+    assert_eq(r_trace.status_code, 200, "Trace of the pre-restart batch")
+    trace = r_trace.json()
+    assert_eq(trace["matched"], 2, "Both pre-restart tokens (mobile, PAN) are still recognised as ours")
+    assert_eq(trace["top"]["sink"] if trace["top"] else None, "loan-vendor", "The leak is traced to the loan-vendor destination")
+    r_dm = requests.post(f"{CLOUD_URL}/v1/detokenise", headers={"X-API-Key": api_key}, json={"token": pre_tokens["MOBILE"]}, timeout=10).json()
+    assert_eq((r_dm["status"], r_dm["value"]), ("ok", pre_mobile), "Mobile token issued before the restart detokenises to the original")
+    r_dp = requests.post(f"{CLOUD_URL}/v1/detokenise", headers={"X-API-Key": api_key}, json={"token": pre_tokens["PAN"]}, timeout=10).json()
+    assert_eq((r_dp["status"], r_dp["value"]), ("ok", pre_pan), "PAN token issued before the restart detokenises to the original")
+
     print("\n" + "=" * 65)
-    print(" ALL 12 ARAN CLOUD SMOKE TEST STEPS PASSED SUCCESSFULLY! ")
+    print(" ALL 13 ARAN CLOUD SMOKE TEST STEPS PASSED SUCCESSFULLY! ")
     print("=" * 65)
 
 

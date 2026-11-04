@@ -149,6 +149,19 @@ def get_db():
     return conn
 
 
+# A gateway placeholder is letters, one underscore, digits: <CARD_1>, <AADHAAR_1>, <MOBILE_1>. Real vault and pseudonym tokens
+# look like <MOBILE:v52dfcc08ea>, <PAN:v...>, <PER:...> and must never match this.
+GATEWAY_PLACEHOLDER_RX = re.compile(r"<[A-Z]+_[0-9]+>")
+
+
+def purge_gateway_placeholders(conn):
+    """Delete ownership rows recorded for gateway placeholders only. Matching is exact (regex, not SQL LIKE, where "_" is a wildcard)."""
+    rows = conn.execute("SELECT tenant_id, token FROM tenant_tokens WHERE token LIKE '<%'").fetchall()
+    stale = [(r["tenant_id"], r["token"]) for r in rows if GATEWAY_PLACEHOLDER_RX.fullmatch(r["token"])]
+    conn.executemany("DELETE FROM tenant_tokens WHERE tenant_id = ? AND token = ?", stale)
+    return len(stale)
+
+
 def init_db():
     conn = get_db()
     with conn:
@@ -274,8 +287,8 @@ def init_db():
 
         conn.execute("CREATE INDEX IF NOT EXISTS idx_tenant_tokens_tenant ON tenant_tokens(tenant_id);")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_tenant_tokens_token ON tenant_tokens(token);")
-        # Clean up any leftover placeholder tokens
-        conn.execute("DELETE FROM tenant_tokens WHERE token LIKE '<%>%';")
+        # Clean up leftover gateway placeholders (<CARD_1>) only; real <MOBILE:v...>, <PAN:v...>, <PER:...> tokens must survive a restart
+        purge_gateway_placeholders(conn)
 
         conn.execute("""
             CREATE TABLE IF NOT EXISTS receipts (
