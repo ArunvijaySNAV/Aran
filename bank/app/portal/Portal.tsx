@@ -15,12 +15,12 @@ export function SignUp() {
   );
   const e = s.fieldErrors ?? {};
   return (
-    <Card><CardTitle>Register with Tessera Bank</CardTitle>
+    <Card className="p-6 sm:p-8"><p className="tabular w-expanded mb-1 text-[15px] text-bank">1</p><CardTitle>Register with Tessera Bank</CardTitle>
       <form action={action} noValidate className="space-y-4">
         {s.message ? <Banner tone="bad" role="alert">{s.status === 503 ? "Service unavailable (503). " : ""}{s.message}</Banner> : null}
         <Field label="Full name" htmlFor="p-name" error={e.name}><Input id="p-name" name="name" autoComplete="name" aria-invalid={!!e.name} /></Field>
-        <Field label="Mobile number" htmlFor="p-mobile" error={e.mobile}><Input id="p-mobile" name="mobile" inputMode="numeric" autoComplete="tel" aria-invalid={!!e.mobile} /></Field>
-        <Field label="Aadhaar number" htmlFor="p-aadhaar" error={e.aadhaar}><Input id="p-aadhaar" name="aadhaar" inputMode="numeric" autoComplete="off" aria-invalid={!!e.aadhaar} /></Field>
+        <Field label="Mobile number" htmlFor="p-mobile" error={e.mobile} hint="10 digits, starting 6–9"><Input id="p-mobile" name="mobile" inputMode="numeric" autoComplete="tel" aria-invalid={!!e.mobile} /></Field>
+        <Field label="Aadhaar number" htmlFor="p-aadhaar" error={e.aadhaar} hint="12 digits; the last digit is a checksum"><Input id="p-aadhaar" name="aadhaar" inputMode="numeric" autoComplete="off" aria-invalid={!!e.aadhaar} /></Field>
         <Field label="PAN (optional)" htmlFor="p-pan" error={e.pan}><Input id="p-pan" name="pan" autoComplete="off" className="uppercase" aria-invalid={!!e.pan} /></Field>
         <Button variant="primary" disabled={pending} className="w-full">{pending ? "Protecting and saving…" : "Register"}</Button>
       </form></Card>
@@ -33,28 +33,28 @@ export function MyDataPanel() {
   const secretRef = useRef("");
   const d = er.data ?? v.data;
   return (
-    <Card><CardTitle>My data</CardTitle>
+    <Card className="p-6 sm:p-8"><p className="tabular w-expanded mb-1 text-[15px] text-bank">2</p><CardTitle>My data</CardTitle>
       {!d ? (
         <form action={view} noValidate className="space-y-4" onSubmit={(e) => { secretRef.current = String(new FormData(e.currentTarget).get("secret") ?? ""); }}>
           {v.message ? <Banner tone="bad" role="alert">{v.message}</Banner> : null}
-          <Field label="Customer reference" htmlFor="m-ref"><Input id="m-ref" name="ref" placeholder="CUS-000001" autoComplete="off" /></Field>
+          <Field label="Customer reference" htmlFor="m-ref"><Input id="m-ref" name="ref" placeholder="e.g. CUS-000001" autoComplete="off" /></Field>
           <Field label="Portal secret" htmlFor="m-secret"><Input id="m-secret" name="secret" type="password" autoComplete="off" /></Field>
           <Button disabled={viewing} className="w-full">{viewing ? "Checking…" : "Show my data"}</Button>
         </form>
       ) : (
         <div className="space-y-4" aria-live="polite">
-          <p className="text-sm">Reference <strong className="font-mono">{d.customerRef}</strong> · status <strong>{d.status}</strong></p>
+          <p className="text-[16px]">Reference <strong className="font-mono">{d.customerRef}</strong> · status <strong>{d.status}</strong></p>
           {d.status === "active" ? (<>
-            <p className="text-sm text-muted">We hold these about you, all as protected tokens: {d.fields.join(", ")}.</p>
+            <p className="text-[15px] text-ink2">We hold these about you, all as protected tokens: {d.fields.join(", ")}.</p>
             {d.accounts.length ? <Table label="Accounts" head={["Account", "Balance"]}>{d.accounts.map((a) => <tr key={a.accountNo}><td>{a.accountNo}</td><td>{rupees(a.balance)}</td></tr>)}</Table> : null}
-            <form action={erase} className="space-y-3 rounded-lg border border-line p-4"><input type="hidden" name="ref" value={d.customerRef} /><input type="hidden" name="secret" value={secretRef.current} />
-              <p className="text-sm font-semibold">Erase my data</p><p className="text-xs text-muted">This destroys the keys for all uses of your data. It cannot be undone.</p>
+            <form action={erase} className="space-y-3 rounded-[8px] border-[1.5px] border-rule p-4"><input type="hidden" name="ref" value={d.customerRef} /><input type="hidden" name="secret" value={secretRef.current} />
+              <p className="text-[16px] font-semibold">Erase my data</p><p className="text-[14px] text-ink2">This destroys the keys for all uses of your data. It cannot be undone.</p>
               {er.message ? <Banner tone="bad" role="alert">{er.message}</Banner> : null}
               <Field label="Type ERASE to confirm" htmlFor="m-confirm"><Input id="m-confirm" name="confirm" autoComplete="off" /></Field>
-              <Button variant="danger" disabled={erasing}>{erasing ? "Erasing…" : "Erase my data"}</Button></form>
+              <Button variant="danger" disabled={erasing} className="w-full sm:w-auto">{erasing ? "Erasing…" : "Erase my data"}</Button></form>
           </>) : <Banner tone="warn">Your data has been erased.</Banner>}
           {d.erased ? <div className="space-y-3"><Banner tone="ok" role="status">Erased. {d.erased.length} signed receipts were issued.</Banner>
-            <Table label="After erasure" head={["Field", "Token we stored now resolves to"]}>{(d.dead ?? []).map((x) => <tr key={x.field}><td>{x.field}</td><td className="font-semibold text-ok">{x.status}</td></tr>)}</Table></div> : null}
+            <div className="night rounded-[14px] p-4"><Table label="After erasure" head={["Field", "Token we stored now resolves to"]}>{(d.dead ?? []).map((x) => <tr key={x.field}><td>{x.field}</td><td className="font-semibold text-token">{x.status}</td></tr>)}</Table></div></div> : null}
         </div>
       )}
     </Card>
