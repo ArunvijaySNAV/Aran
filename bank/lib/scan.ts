@@ -5,7 +5,7 @@ import type postgres from "postgres";
 import { luhnValid, verhoeffValid } from "./validators";
 
 export const SCHEMAS = ["core_banking", "log_platform", "crm", "vendor_share", "ai_chat"] as const;
-export interface ScanFinding { schema: string; table: string; column: string; kind: "aadhaar" | "card" | "mobile"; masked: string }
+export interface ScanFinding { schema: string; table: string; column: string; kind: "aadhaar" | "card" | "mobile" | "aran-key"; masked: string }
 export interface ScanReport {
   clean: boolean; tables: number; rows: number; cells: number; findings: ScanFinding[];
   perTable: { schema: string; table: string; rows: number }[]; scannedAt: string;
@@ -35,7 +35,15 @@ export function findPlaintext(raw: string): { kind: ScanFinding["kind"]; masked:
   return out;
 }
 
-export async function scanPlaintext(sql: postgres.Sql): Promise<ScanReport> {
+/** Raw Aran API keys: anything shaped like aran_live_<hex>, and any exact secret the caller passes in (for example the keys from the environment). */
+const KEY_SHAPE = /aran_[a-z]+_[0-9a-zA-Z]{16,}/g;
+export function findKeys(raw: string, secrets: string[] = []): { kind: "aran-key"; masked: string }[] {
+  const hit = KEY_SHAPE.test(raw) || secrets.some((x) => x.length >= 12 && raw.includes(x));
+  KEY_SHAPE.lastIndex = 0;
+  return hit ? [{ kind: "aran-key", masked: "aran_…" }] : [];   // never echo any part of the key
+}
+
+export async function scanPlaintext(sql: postgres.Sql, opts: { secrets?: string[] } = {}): Promise<ScanReport> {
   const cols = await sql<{ table_schema: string; table_name: string; column_name: string; data_type: string }[]>`
     select table_schema, table_name, column_name, data_type from information_schema.columns
     where table_schema = any(${SCHEMAS as unknown as string[]}) and data_type in ('text','character varying','jsonb','json')
@@ -56,7 +64,7 @@ export async function scanPlaintext(sql: postgres.Sql): Promise<ScanReport> {
       const v = row[c.column_name] as string | null;
       if (!v) continue;
       cells++;
-      for (const f of findPlaintext(v)) findings.push({ schema: t.table_schema, table: t.table_name, column: c.column_name, ...f });
+      for (const f of [...findPlaintext(v), ...findKeys(v, opts.secrets)]) findings.push({ schema: t.table_schema, table: t.table_name, column: c.column_name, ...f });
     }
   }
   return { clean: findings.length === 0, tables: tables.length, rows, cells, findings, perTable, scannedAt: new Date().toISOString() };

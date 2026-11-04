@@ -54,11 +54,13 @@ export class MockAran {
         this.calls.push({ path, key });
         const send = (s: number, j: unknown) => { res.writeHead(s, { "content-type": "application/json" }); res.end(JSON.stringify(j)); };
         if (this.down) return send(503, { detail: "Aran core call /api/process failed: connection refused" });
+        if (path === "/v1/health") return send(200, { status: "ok", core: true, core_ready: true });
         if (key !== APP_KEY && key !== COMPLIANCE_KEY) return send(401, { detail: "Invalid, missing or revoked API key." });
         const j = body ? JSON.parse(body) : {};
         const needs = (scope: "app" | "compliance") => (scope === "app" ? key === APP_KEY : key === COMPLIANCE_KEY);
         if (path === "/v1/protect") {
           if (!needs("app")) return send(403, { detail: "this key lacks the 'protect' scope" });
+          if (typeof j.text !== "string") return send(422, { detail: [{ loc: ["body", "text"], msg: "Field required" }] });   // connection probe: empty body
           this.protects++;
           if (this.failAfter !== null && this.protects > this.failAfter) return send(503, { detail: "Aran core call failed" });
           const r = this.protect(j.text, j.customer_ref, j.purpose ?? "KYC");
@@ -66,11 +68,13 @@ export class MockAran {
         }
         if (path === "/v1/gateway") {
           if (!needs("app")) return send(403, { detail: "this key lacks the 'gateway' scope" });
+          if (typeof j.prompt !== "string") return send(422, { detail: [{ loc: ["body", "prompt"], msg: "Input should be a valid string" }] });
           const saw = this.protect(j.prompt, undefined, "Service").after.replace(/\d{10,16}/g, "<NUM>");
           return send(200, { reply: `You wrote: ${j.prompt}`, provider_saw: [{ role: "user", content: saw }], provider_reply: `You wrote: ${saw}`, provider: "echo stand-in (no external AI call)", findings_in_prompt: 1 });
         }
         if (path === "/v1/trace") {
           if (!needs("app")) return send(403, { detail: "this key lacks the 'trace' scope" });
+          if (typeof j.dump !== "string") return send(422, { detail: [{ loc: ["body", "dump"], msg: "Field required" }] });
           const hits = [...(j.dump as string).matchAll(/<[A-Z]+:[v0-9a-z]+>|(?<![0-9A-Za-z])\d{12}(?![0-9A-Za-z])/g)].map((m) => m[0]);
           const items = hits.map((v) => ({ value: v, sink: this.vault.has(v) ? "loan-vendor" : null, how: this.vault.has(v) ? "vault" : null }));
           const matched = items.filter((i) => i.sink).length;
@@ -85,10 +89,12 @@ export class MockAran {
         }
         if (path === "/v1/erase") {
           if (!needs("compliance")) return send(403, { detail: "this key lacks the 'erase' scope" });
+          if (!j.customer_ref) return send(422, { detail: [{ loc: ["body", "customer_ref"], msg: "Field required" }] });
           this.erased.add(`${j.customer_ref}|${j.purpose}`);
           return send(200, { event: { event: "KEY_DESTROYED", customer: j.customer_ref, purpose: j.purpose }, key_id: "k_mock", alg: "Ed25519+ML-DSA-65", public_key: "pk", signature: "sig" });
         }
-        if (path === "/v1/receipts/verify") return send(200, { valid: j.signature === "sig", post_quantum_valid: true });
+        if (path === "/v1/dashboard") return needs("compliance") ? send(200, { tenant: { id: "t_mock", name: "Mock Bank" } }) : send(403, { detail: "this key lacks the 'dashboard' scope" });
+        if (path === "/v1/receipts/verify") return !needs("compliance") ? send(403, { detail: "this key lacks the 'verify' scope" }) : send(200, { valid: j.signature === "sig", post_quantum_valid: true });
         return send(404, { detail: "not found" });
       });
     });

@@ -7,12 +7,12 @@ import { supabaseServer } from "./supabase/server";
 import { Forbidden, type Actor } from "./domain";
 import { appAran, complianceAran } from "./aran";
 
-export type Feature = "dashboard" | "customers" | "onboard" | "accounts" | "support" | "vendor" | "compliance" | "dataplane";
+export type Feature = "dashboard" | "customers" | "onboard" | "accounts" | "support" | "vendor" | "compliance" | "dataplane" | "settings";
 const ACCESS: Record<Role, Feature[]> = {
   kyc_officer: ["dashboard", "customers", "onboard", "accounts"],
   support_agent: ["dashboard", "customers", "support"],
   compliance_officer: ["dashboard", "customers", "accounts", "compliance"],
-  admin: ["dashboard", "customers", "onboard", "accounts", "support", "vendor", "compliance", "dataplane"],
+  admin: ["dashboard", "customers", "onboard", "accounts", "support", "vendor", "compliance", "dataplane", "settings"],
 };
 export const can = (role: Role, f: Feature) => ACCESS[role].includes(f);
 export const ROLE_LABEL: Record<Role, string> = { kyc_officer: "KYC officer", support_agent: "Support agent", compliance_officer: "Compliance officer", admin: "Administrator" };

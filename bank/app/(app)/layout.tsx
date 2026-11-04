@@ -9,7 +9,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const s = await requireSession();
   const items: NavItem[] = ([
     ["/dashboard", "Dashboard", "dashboard"], ["/customers", "Customers", "customers"], ["/accounts", "Accounts", "accounts"],
-    ["/support", "Support console", "support"], ["/vendor", "Loan vendor export", "vendor"], ["/compliance", "Compliance centre", "compliance"], ["/data-plane", "Data plane", "dataplane"],
+    ["/support", "Support console", "support"], ["/vendor", "Loan vendor export", "vendor"], ["/compliance", "Compliance centre", "compliance"], ["/data-plane", "Data plane", "dataplane"], ["/settings/aran", "Aran connection", "settings"],
   ] as const).filter(([, , f]) => can(s.role, f)).map(([href, label]) => ({ href, label }));
   return (
     <div className="min-h-[calc(100vh-61px)]">

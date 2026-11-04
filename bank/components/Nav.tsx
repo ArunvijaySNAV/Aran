@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 
 export interface NavItem { href: string; label: string }
 // Display labels (DESIGN.md section 12); hrefs and access rules come from the layout unchanged.
-const LABELS: Record<string, string> = { "/support": "Support", "/vendor": "Vendor exports", "/compliance": "Compliance", "/data-plane": "Data Plane" };
+const LABELS: Record<string, string> = { "/support": "Support", "/vendor": "Vendor exports", "/compliance": "Compliance", "/data-plane": "Data Plane", "/settings/aran": "Aran connection" };
 export function Nav({ items }: { items: NavItem[] }) {
   const path = usePathname();
   return (

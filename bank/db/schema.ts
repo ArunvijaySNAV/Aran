@@ -1,4 +1,4 @@
-import { bigint, bigserial, integer, jsonb, pgSchema, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, bigserial, integer, jsonb, pgSchema, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 // Mirrors db/migrations/0001_schemas.sql. Every identifier column holds an Aran token, never a raw value.
 export const coreBanking = pgSchema("core_banking");
@@ -15,6 +15,23 @@ export const staff = coreBanking.table("staff", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 export type Role = "kyc_officer" | "support_agent" | "compliance_officer" | "admin";
+
+/** Single row (id = 1): the saved Aran Cloud connection. Keys are AES-256-GCM ciphertext; see lib/connection-crypto.ts. */
+export const aranConnection = coreBanking.table("aran_connection", {
+  id: smallint("id").primaryKey().default(1),
+  baseUrl: text("base_url").notNull(),
+  appKeyEnc: text("app_key_enc").notNull(),
+  complianceKeyEnc: text("compliance_key_enc").notNull(),
+  appKeyLast4: text("app_key_last4").notNull(),
+  complianceKeyLast4: text("compliance_key_last4").notNull(),
+  workspaceName: text("workspace_name"),
+  status: text("status").$type<"connected" | "not_connected" | "unreachable" | "key_rejected">().notNull().default("not_connected"),
+  checks: jsonb("checks").$type<ConnectionCheck[] | null>(),
+  lastCheckedAt: timestamp("last_checked_at", { withTimezone: true }),
+  updatedBy: text("updated_by").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export interface ConnectionCheck { id: string; group: "reach" | "app" | "compliance"; label: string; ok: boolean; detail: string }
 
 export const customers = coreBanking.table("customers", {
   id: uuid("id").primaryKey().defaultRandom(),
