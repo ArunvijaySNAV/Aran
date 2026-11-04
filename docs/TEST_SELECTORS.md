@@ -1,0 +1,111 @@
+# Selectors that tests and scripts rely on
+
+These must keep working through the redesign (same element, same user-visible behaviour). Generated from `e2e/*.spec.mjs`; unit tests (`bank/test`, Python) do not touch the DOM.
+
+## e2e/console.spec.mjs
+
+- `#app:not([hidden])`
+- `#demo-after`
+- `#demo-before`
+- `#demo-meta .pill`
+- `#dlg-body .btn.primary`
+- `#dump`
+- `#email`
+- `#flow:not([hidden])`
+- `#go`
+- `#key`
+- `#key-err`
+- `#key-label`
+- `#keys-view:not([hidden])`
+- `#name`
+- `#name-err`
+- `#newkey`
+- `#pg`
+- `#signin:not([hidden])`
+- `#status.ok`
+- `#test`
+- `#view .skel`
+- `#view .state`
+- `#view button[type=submit]`
+- `#view tbody tr`
+- `.banner.ok`
+- `.bars`
+- `.drawer h3`
+- `.pill.ok:text("Valid")`
+- `.tok`
+- `Tab`
+- `text=Insert a generated sample`
+- `text=Protect this text`
+- `text=Trace this dump`
+- `text=Use my latest tokens as a sample`
+- `text=Verify >> nth=0`
+- `text=Verify chain`
+
+## e2e/bank.spec.mjs
+
+- `#aadhaar`
+- `#aadhaar-err`
+- `#email`
+- `#er-confirm`
+- `#er-ref`
+- `#m-confirm`
+- `#m-ref`
+- `#m-secret`
+- `#mobile`
+- `#mobile-err`
+- `#name`
+- `#oa-open`
+- `#p-aadhaar`
+- `#p-mobile`
+- `#p-name`
+- `#p-name-err`
+- `#pan`
+- `#password`
+- `#prompt`
+- `#secret`
+- `#tx-amt`
+- `#tx-desc`
+- `[role=alert]:text("not right")`
+- `[role=status]:has-text("Hides in")`
+- `button:has-text("Ask")`
+- `button:has-text("Erase my data")`
+- `button:has-text("Register")`
+- `button:has-text("Verify receipt") >> nth=0`
+- `button[type=submit]`
+- `form:has(textarea) button[type=submit]`
+- `input[name=loanInterest]`
+- `main`
+- `table[aria-label="After erasure"] tbody tr td:last-child`
+- `table[aria-label="Token resolution after erasure"] tbody tr td:last-child`
+- `tbody tr:first-child a`
+- `text=Build CSV export`
+- `text=Clean.`
+- `text=Continue`
+- `text=Erase my data`
+- `text=Erase this customer`
+- `text=Hide now`
+- `text=Leak traced`
+- `text=New balance`
+- `text=Onboard customer`
+- `text=Open account`
+- `text=Post transaction`
+- `text=Reveal Aadhaar`
+- `text=Scan for plaintext`
+- `text=Show my data`
+- `text=Sign out`
+- `text=Simulate vendor breach`
+- `text=Simulate vendor breach >> nth=0`
+- `text=Valid:`
+- `text=What the AI provider saw`
+- `text=erased`
+- `text=opened`
+- `text=signed receipts issued`
+- `text=signed receipts were issued`
+- `textarea`
+
+## Ids and hooks used by the console scripts (`aran-cloud/cloud/static/js/*.js`, inline scripts)
+- landing: `#demo-before`, `#demo-after`, `#demo-meta`, `#demo-run`
+- signup: `#f`, `#go`, `#name`, `#email`, `#name-err`, `#email-err`, `#form-error`, `#form-view`, `#keys-view`, `#k-h`, `#k-admin`, `#k-dash`, `#saved`, `#next`
+- connect: `#need-key`, `#flow`, `#key-form`, `#k`, `#key-err`, `#base`, `#lang-tabs`, `#snippet`, `#test`, `#test-out`, `#status`, `#status-text`, `.dot`
+- dashboard: `#signin`, `#signin-form`, `#key`, `#key-err`, `#app`, `#nav`, `#view`, `#view-title`, `#ws-line`, `#health`, `#signout`, `#dlg`, `#dlg-body`, `#newkey`, `#key-label`, `#dump`, `#pg`, `#custom-scopes`, `[data-copy]`, `[data-theme-btn]`, `[data-tab]`, `.bars`, `.drawer`, `.tok`, `.banner.ok`, `.pill.ok`, `.state`, `.skel`
+- bank: `#email`, `#password`, `#name`, `#mobile`, `#aadhaar`, `#pan`, `#card`, `#mobile-err`, `#aadhaar-err`, `#oa-open`, `#tx-amt`, `#tx-desc`, `#er-ref`, `#er-confirm`, `#prompt`, `#p-name`, `#p-name-err`, `#p-mobile`, `#p-aadhaar`, `#p-pan`, `#secret`, `#m-ref`, `#m-secret`, `#m-confirm`, `aria-label` tables (`Token resolution after erasure`, `After erasure`), `[role=alert]`, `[role=status]`, `[aria-current]`
