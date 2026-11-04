@@ -24,7 +24,7 @@ export function EraseForm() {
       <form action={action} className="space-y-4" noValidate>
         <Field label="Customer reference" htmlFor="er-ref"><Input id="er-ref" name="ref" placeholder="CUS-000001" required /></Field>
         <Field label="Type the reference again to confirm" htmlFor="er-confirm" error={s.fieldErrors?.confirm} hint="Erasure destroys the keys for KYC, Loans, Service and Marketing. It cannot be undone."><Input id="er-confirm" name="confirm" autoComplete="off" required /></Field>
-        {s.message ? <Banner tone="bad" role="alert">{s.status === 503 ? "Service unavailable (503). " : ""}{s.message}</Banner> : null}
+        {s.message && !s.fieldErrors?.confirm ? <Banner tone="bad" role="alert">{s.status === 503 ? "Service unavailable (503). " : ""}{s.message}{s.status === 503 ? " Nothing was erased." : ""}</Banner> : null}
         <Button variant="danger" disabled={pending}>{pending ? "Erasing…" : "Erase this customer's data"}</Button>
       </form>
       {s.data ? (
@@ -35,7 +35,7 @@ export function EraseForm() {
             rows={s.data.receipts.map((r) => ({ label: r.purpose, value: `${String(r.receipt.alg ?? "Ed25519")} · ${String(r.receipt.key_id ?? "")}`, mono: true }))}
           >
             <p className="text-[15px] text-ink2">Destroying one key makes every copy unreadable, in every system at once. Each receipt is signed and can be verified.</p>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">{s.data.receipts.map((r) => <div key={r.purpose} className="flex items-center justify-between gap-3 rounded-[8px] border-[1.5px] border-rule p-2.5"><span className="text-[15px] font-semibold">{r.purpose}</span><VerifyButton receipt={r.receipt} /></div>)}</div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">{s.data.receipts.map((r) => <div key={r.purpose} className="grid grid-cols-[1fr_auto] items-start gap-x-3 rounded-[8px] border-[1.5px] border-rule p-2.5"><span className="pt-3 text-[15px] font-semibold">{r.purpose}</span><VerifyButton receipt={r.receipt} /></div>)}</div>
           </Certificate>
           <div className="night rounded-[14px] p-4 sm:p-5">
             <h3 className="mb-1 text-[17px] font-bold [font-stretch:100%]">Do the stored tokens still resolve?</h3>
