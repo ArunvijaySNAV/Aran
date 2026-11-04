@@ -13,6 +13,7 @@ a { color: var(--text); text-underline-offset: 4px; }
 code, pre, .mono { font-family: var(--mono); font-size: .8em; }
 img, svg { max-width: 100%; }
 :focus-visible { outline: 3px solid var(--seal); outline-offset: 3px; border-radius: 4px; }
+.night :focus-visible, html[data-theme=dark] :focus-visible { outline-color: var(--night-token); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .skip { position: absolute; left: 8px; top: -64px; background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 8px; z-index: 100; font-weight: 700; }
 .skip:focus { top: 8px; }

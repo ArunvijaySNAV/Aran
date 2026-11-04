@@ -54,6 +54,12 @@ for f in changed:
         if logic_region(old) != logic_region(new): bad.append(f"mixed file: protected logic region changed: {f}")
         else: warn.append(f"mixed file edited (logic region identical): {f}")
 
+def scripts_only(src, f):
+    """For .html files only the bodies of inline <script> tags carry behaviour; visible copy and code samples do not."""
+    if f.endswith(".html"):
+        return "\n".join(re.findall(r"<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>", src, flags=re.S))
+    return src
+
 def fingerprint(src):
     pats = [r"/v1/[A-Za-z0-9_/{}\-?=.]*", r"method:\s*'[A-Z]+'", r"'aran_[a-z_]+'", r"setInterval\([^;]*?,\s*\d+\)", r"timeout\s*[:=]\s*\d+",
             r"body:\s*\{[^}]*\}", r"X-API-Key", r"headers?\[?'[A-Za-z-]+'"]
@@ -63,7 +69,7 @@ def fingerprint(src):
 for f in STATIC_JS:
     if f in changed:
         old, new = show(BASE, f), current(f)
-        if old is not None and new is not None and fingerprint(old) != fingerprint(new):
+        if old is not None and new is not None and fingerprint(scripts_only(old, f)) != fingerprint(scripts_only(new, f)):
             bad.append(f"static script behavioural fingerprint changed: {f}")
         elif old is not None: warn.append(f"static file edited (fingerprint identical): {f}")
 

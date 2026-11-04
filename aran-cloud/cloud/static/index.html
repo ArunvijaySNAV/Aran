@@ -3,22 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aran Cloud: firewall for sensitive data</title>
-<meta name="description" content="Tokenise Aadhaar, card, mobile, PAN, UPI and names before they reach your database, logs, vendors and AI tools.">
+<title>Aran Cloud: the number a thief can't use</title>
+<meta name="description" content="Aran swaps Aadhaar, card and mobile numbers for tokens that fail their own checksum, before they reach your database, logs, vendors or AI tools.">
 <link rel="preload" href="/static/fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/css/tokens.css">
 <link rel="stylesheet" href="/static/css/system.css">
+<link rel="stylesheet" href="/static/css/landing.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 40 40"><path d="M5 36V19a15 15 0 0 1 30 0v17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M11 36V20a9 9 0 0 1 18 0v16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M17 36V21a3 3 0 0 1 6 0v15" fill="currentColor"/></symbol>
+</svg>
+
 <header class="topbar">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="Aran home"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 36V19a15 15 0 0 1 30 0v17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M11 36V20a9 9 0 0 1 18 0v16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M17 36V21a3 3 0 0 1 6 0v15" fill="currentColor"/></svg>Aran</a>
+    <a class="brand" href="/" aria-label="Aran home"><svg aria-hidden="true"><use href="#mark"/></svg>Aran</a>
     <nav class="nav" aria-label="Primary">
       <a class="hide-sm" href="#how">How it works</a>
-      <a class="hide-sm" href="#pricing">Pricing</a>
-      <a href="/dashboard">Sign in</a>
+      <a class="hide-sm" href="#bank">In a bank</a>
+      <a class="hide-sm" href="#erasure">Erasure</a>
+      <a class="hide-sm" href="/dashboard">Sign in</a>
       <button class="btn sm icon-btn" data-theme-btn aria-label="Toggle dark mode" title="Toggle dark mode">◐<span class="hide-sm"> Night</span></button>
       <a class="btn primary sm" href="/signup">Get an API key</a>
     </nav>
@@ -26,83 +32,228 @@
 </header>
 
 <main id="main">
-  <section class="hero wrap">
-    <span class="eyebrow">Firewall-as-a-service for sensitive data</span>
-    <h1>Your app keeps working.<br>Your database stops holding secrets.</h1>
-    <p class="lead">Tokenise sensitive data before it reaches your database, logs, vendors and AI tools.</p>
-    <div class="row" style="margin-top:24px">
-      <a class="btn primary" href="/signup">Get an API key, free</a>
-      <a class="btn" href="#demo">See a real call</a>
-    </div>
-  </section>
-
-  <section id="demo" class="wrap" aria-labelledby="demo-h" style="padding-bottom:56px">
-    <div class="card">
-      <div class="row between" style="margin-bottom:12px">
-        <h2 id="demo-h" style="margin:0;font-size:1.25rem">A real <code>/v1/protect</code> call, right now</h2>
-        <button class="btn sm" id="demo-run" type="button">Run again</button>
+  <!-- 1. the checksum flip -->
+  <section class="wrap hero" id="how" aria-labelledby="hero-h">
+    <div class="hero-copy">
+      <h1 id="hero-h">The number a&nbsp;thief can&rsquo;t&nbsp;use.</h1>
+      <p class="lead">Aran swaps Aadhaar, card and mobile numbers for tokens that fail their own checksum, before they reach your database, logs, vendors or AI tools.</p>
+      <div class="cta">
+        <button class="btn primary" id="protectBtn" type="button">Protect this number</button>
+        <button class="btn" id="newBtn" type="button">Try another</button>
       </div>
-      <div class="demo" aria-live="polite">
-        <div><div class="lbl">Your app sends</div><pre id="demo-before" aria-label="Before"></pre></div>
-        <div><div class="lbl">Your database gets</div><pre id="demo-after" aria-label="After"></pre></div>
+      <p class="small muted note">Illustration with a sample number. Type or paste any 12 digits; a real call on a generated sample is further down.</p>
+    </div>
+
+    <div class="plate" id="plate">
+      <div class="guil-wrap" aria-hidden="true"><svg viewBox="-260 -260 520 520" data-rosette fill="none" stroke="currentColor" stroke-width=".55"></svg></div>
+      <div class="plate-top"><span id="plateLabel">What your app receives</span><span id="plateSink" class="plate-sink"></span></div>
+      <label class="sr-only" for="digits">Twelve-digit number</label>
+      <input class="digits" id="digits" inputmode="numeric" autocomplete="off" maxlength="14" spellcheck="false" aria-describedby="verdict">
+      <div class="check" id="verdict-wrap" aria-live="polite"><span id="verdict" class="stamp plain"></span></div>
+      <div class="sinks" id="sinks" role="group" aria-label="Destination, each one gets a different token">
+        <button type="button" data-s="kyc-archive" aria-pressed="true">kyc-archive</button>
+        <button type="button" data-s="crm" aria-pressed="false">crm</button>
+        <button type="button" data-s="loan-vendor" aria-pressed="false">loan-vendor</button>
+        <button type="button" data-s="ai-gateway" aria-pressed="false">ai-gateway</button>
       </div>
-      <div class="row small muted" id="demo-meta" style="margin-top:12px"></div>
-      <p class="small muted" style="margin:8px 0 0">The record is generated for each click: valid-looking identifiers that belong to nobody. This endpoint accepts no input, so no real data can go through it.</p>
+      <div class="micro" aria-hidden="true">PROTECTED BEFORE IT IS STORED · PROTECTED BEFORE IT IS STORED · PROTECTED BEFORE IT IS STORED · PROTECTED BEFORE IT IS STORED</div>
     </div>
   </section>
 
-  <section id="how" class="section wrap" aria-labelledby="how-h">
-    <h2 id="how-h">Three steps, about five lines</h2>
-    <div class="steps">
-      <div class="step card"><h3>Get a key</h3><p class="muted">Create a workspace. You get an admin key once, plus a read-only dashboard key. Mint narrower keys for your app server and your compliance officer.</p></div>
-      <div class="step card"><h3>Add five lines</h3><p class="muted">Call <code>protectFields</code> (or <code>/v1/protect</code>) on the server before you write. Store the tokens. If Aran is unreachable, store nothing.</p></div>
-      <div class="step card"><h3>See it in the dashboard</h3><p class="muted">Every protected value, every sink, every reveal and every erasure receipt, counted from real calls.</p></div>
+  <!-- 2. the flight, with a real call on a generated sample -->
+  <section class="scene" id="bank" aria-labelledby="flight-h">
+    <div class="wrap">
+      <div class="scene-head">
+        <h2 id="flight-h">One tap. Raw on the left, tokens in the database.</h2>
+        <p>This is a real call to <code>/v1/protect</code> on a record generated for this page. Press the button and watch the values cross the line.</p>
+      </div>
+      <div class="flight" id="demo">
+        <div class="bankpanel">
+          <div class="bank-bar"><span class="tile" aria-hidden="true"></span>Tessera · New customer</div>
+          <div class="bank-body">
+            <div class="lbl">Your app sends</div>
+            <pre id="demo-before" class="light" aria-label="Before"></pre>
+          </div>
+        </div>
+        <div class="boundary" aria-hidden="true"><span class="gate"><svg width="22" height="22"><use href="#mark"/></svg></span></div>
+        <div class="plane night">
+          <div class="plane-bar"><strong>Your database gets</strong><button class="btn sm night-btn" id="demo-run" type="button">Run again</button></div>
+          <div class="plane-body">
+            <pre id="demo-after" aria-label="After"></pre>
+            <div class="row small" id="demo-meta" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+      <p class="small muted note">The record is generated for each press: valid-looking identifiers that belong to nobody. This endpoint accepts no input, so no real data can go through it.</p>
     </div>
   </section>
 
-  <section class="section wrap" aria-labelledby="arch-h">
-    <h2 id="arch-h">Where it sits</h2>
-    <p class="muted" style="max-width:680px">Aran sits between your application and everything that stores or receives its data. The same Aadhaar becomes a different token for each destination, so a leak at one place says where it came from and cannot be joined with another.</p>
-    <svg class="arch" viewBox="0 0 760 330" role="img" aria-label="Diagram: the application sends data to Aran, which forwards tokens to the database, logs, CRM, loan vendor and AI tools">
-      <rect class="box" x="10" y="125" width="140" height="80" rx="12"/><text x="80" y="160" text-anchor="middle" font-weight="600" font-size="16">Your app</text><text class="sub" x="80" y="182" text-anchor="middle">sees plaintext briefly</text>
-      <path class="line" d="M150 165H300"/><path class="line" d="M292 159l8 6-8 6"/>
-      <rect class="aran" x="300" y="105" width="150" height="120" rx="14"/><text x="375" y="155" text-anchor="middle" font-weight="700" font-size="20">Aran</text><text class="sub" x="375" y="178" text-anchor="middle">detect · tokenise</text><text class="sub" x="375" y="196" text-anchor="middle">vault · receipts</text>
-      <g><path class="line" d="M450 150C500 150 500 30 560 30"/><path class="line" d="M450 158C510 158 500 95 560 95"/><path class="line" d="M450 165H560"/><path class="line" d="M450 172C510 172 500 235 560 235"/><path class="line" d="M450 180C500 180 500 300 560 300"/></g>
-      <rect class="box" x="560" y="8" width="190" height="44" rx="10"/><text x="655" y="35" text-anchor="middle" font-weight="600">Database · tokens only</text>
-      <rect class="box" x="560" y="73" width="190" height="44" rx="10"/><text x="655" y="100" text-anchor="middle" font-weight="600">Logs · redacted</text>
-      <rect class="box" x="560" y="143" width="190" height="44" rx="10"/><text x="655" y="170" text-anchor="middle" font-weight="600">CRM · its own tokens</text>
-      <rect class="box" x="560" y="213" width="190" height="44" rx="10"/><text x="655" y="240" text-anchor="middle" font-weight="600">Loan vendor · own tokens</text>
-      <rect class="box" x="560" y="278" width="190" height="44" rx="10"/><text x="655" y="305" text-anchor="middle" font-weight="600">AI tools · redacted prompts</text>
-    </svg>
-    <p class="small muted">What Aran does not do: your application server still receives the plaintext for a moment before it calls Aran. Aran protects what is stored and shared afterwards.</p>
+  <!-- 3. erase and certificate (illustration) -->
+  <section class="scene" id="erasure" aria-labelledby="erase-h">
+    <div class="wrap">
+      <div class="scene-head">
+        <h2 id="erase-h">Erase a customer. Get a certificate.</h2>
+        <p>Destroying one key makes every copy unreadable, in every system at once. The proof is signed and checkable by anyone.</p>
+      </div>
+      <div class="erase" id="erase">
+        <div class="ledger night">
+          <h3>CUS-000123 · Sample customer</h3>
+          <p class="sub">Aadhaar tokens held across four destinations</p>
+          <div class="lrow"><span class="pill">kyc-archive</span><span class="tk"></span></div>
+          <div class="lrow"><span class="pill">crm</span><span class="tk"></span></div>
+          <div class="lrow"><span class="pill">loan-vendor</span><span class="tk"></span></div>
+          <div class="lrow"><span class="pill">log-platform</span><span class="tk"></span></div>
+          <button class="btn night-btn" id="shredBtn" type="button">Crypto-shred purpose key</button>
+          <p class="small" id="shredStatus" role="status"></p>
+        </div>
+        <div class="cert" id="cert">
+          <div class="band"><svg viewBox="0 0 600 34" preserveAspectRatio="none" data-band fill="none" stroke="currentColor" stroke-width=".6" aria-hidden="true"></svg></div>
+          <div class="cert-body">
+            <div>
+              <h3>Certificate of erasure</h3>
+              <dl>
+                <dt>Customer</dt><dd>CUS-000123</dd>
+                <dt>Purpose</dt><dd>KYC</dd>
+                <dt>Destinations</dt><dd>4 of 4 now unreadable</dd>
+                <dt>Signed with</dt><dd>Ed25519 and ML-DSA-65</dd>
+              </dl>
+            </div>
+            <svg class="seal" viewBox="0 0 150 150" aria-hidden="true" fill="none" stroke="currentColor"><circle cx="75" cy="75" r="70" stroke-width="3"/><circle cx="75" cy="75" r="56" stroke-width="1" stroke-dasharray="2 4"/><path d="M48 77l19 19 36-40" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <p class="cert-foot small muted">Illustration with sample data. Real certificates are issued by <code>/v1/erase</code> with a Merkle root and two signatures, and verified in your dashboard under Erasure and receipts.</p>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <section id="pricing" class="section wrap" aria-labelledby="pricing-h">
-    <h2 id="pricing-h">Pricing</h2>
-    <p class="muted">Preview. Plans are described here for planning; nothing is billed yet.</p>
-    <div class="grid cols-3">
-      <div class="card price"><h3>Free</h3><div class="amt">₹0</div><ul><li>10,000 protect calls a month</li><li>One workspace, own isolated vault</li><li>Scoped API keys, audit log, receipts</li></ul><a class="btn" href="/signup">Start free</a></div>
-      <div class="card price featured"><h3>Team</h3><div class="amt">On request</div><ul><li>Higher limits and rate limits</li><li>Multiple workspaces</li><li>Priority support</li></ul><a class="btn primary" href="mailto:hello@aran.example?subject=Aran%20Team%20plan">Talk to us</a></div>
-      <div class="card price"><h3>Enterprise</h3><div class="amt">Custom</div><ul><li>Self-hosted deployment</li><li>Custom retention and key custody</li><li>Security review support</li></ul><a class="btn" href="mailto:hello@aran.example?subject=Aran%20Enterprise">Contact sales</a></div>
+  <!-- 4. same person, different tokens (illustration) -->
+  <section class="scene" aria-labelledby="diff-h">
+    <div class="wrap">
+      <div class="scene-head">
+        <h2 id="diff-h">Same person, different tokens.</h2>
+        <p>One Aadhaar, four destinations, four unrelated tokens. A leak at one of them says where it came from and cannot be joined with another.</p>
+      </div>
+      <div class="diff">
+        <div class="night tokens-card">
+          <div class="small dim">Sample Aadhaar, illustration only</div>
+          <div class="big" id="tokens-real"></div>
+          <div class="table-wrap"><table aria-label="Illustration: one Aadhaar, one token per destination"><thead><tr><th scope="col">Destination</th><th scope="col" class="num">Token</th></tr></thead><tbody id="tokens-body"></tbody></table></div>
+        </div>
+        <div class="arch-wrap" tabindex="0" role="group" aria-label="Diagram, scrollable">
+          <h3>Where Aran sits</h3>
+          <svg class="arch" viewBox="0 0 560 300" role="img" aria-label="Diagram: your app sends data to Aran, which sends tokens to the database, logs, CRM, loan vendor and AI tools">
+            <rect class="box" x="4" y="110" width="110" height="80" rx="10"/><text x="59" y="146" text-anchor="middle" font-weight="700" font-size="15">Your app</text><text class="sub" x="59" y="166" text-anchor="middle">sees the raw value</text>
+            <path class="line" d="M114 150H200"/><path class="line" d="M192 144l8 6-8 6"/>
+            <rect class="aran" x="200" y="95" width="110" height="110" rx="12"/><text x="255" y="146" text-anchor="middle" font-weight="800" font-size="18">ARAN</text><text class="sub" x="255" y="168" text-anchor="middle">tokenise · vault</text>
+            <path class="line" d="M310 140C340 140 340 25 372 25"/><path class="line" d="M310 146C345 146 340 87 372 87"/><path class="line" d="M310 150H372"/><path class="line" d="M310 154C345 154 340 213 372 213"/><path class="line" d="M310 160C340 160 340 275 372 275"/>
+            <rect class="box" x="372" y="6" width="184" height="38" rx="8"/><text x="464" y="30" text-anchor="middle" font-weight="600" font-size="14">Database · tokens</text>
+            <rect class="box" x="372" y="68" width="184" height="38" rx="8"/><text x="464" y="92" text-anchor="middle" font-weight="600" font-size="14">Logs · redacted</text>
+            <rect class="box" x="372" y="131" width="184" height="38" rx="8"/><text x="464" y="155" text-anchor="middle" font-weight="600" font-size="14">CRM · own tokens</text>
+            <rect class="box" x="372" y="194" width="184" height="38" rx="8"/><text x="464" y="218" text-anchor="middle" font-weight="600" font-size="14">Loan vendor · own tokens</text>
+            <rect class="box" x="372" y="256" width="184" height="38" rx="8"/><text x="464" y="280" text-anchor="middle" font-weight="600" font-size="14">AI tool · redacted</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- integration -->
+  <section class="scene" aria-labelledby="int-h">
+    <div class="wrap">
+      <div class="scene-head">
+        <h2 id="int-h">Three steps, about five lines.</h2>
+        <p>Create a workspace, add the call on your server before you write, and watch the first event arrive in the dashboard. If Aran cannot be reached, store nothing.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><h3>Get an API key</h3><p class="muted">You receive an admin key once and a read-only dashboard key. Mint narrower keys for your app server and your compliance officer.</p></div>
+        <div class="step"><h3>Add five lines</h3><p class="muted">Call <code>protectFields</code> or <code>/v1/protect</code> on the server. Store the tokens, never the originals.</p></div>
+        <div class="step"><h3>Watch it arrive</h3><p class="muted">Every protected value, sink, reveal and erasure receipt is counted from real calls.</p></div>
+      </div>
+      <div class="codeblock">
+        <div class="tabs night-tabs" role="tablist" aria-label="Language">
+          <button role="tab" id="tab-ts" aria-controls="snip-ts" data-codetab="ts" aria-selected="true" type="button">TypeScript</button>
+          <button role="tab" id="tab-py" aria-controls="snip-py" data-codetab="py" aria-selected="false" type="button">Python</button>
+          <button role="tab" id="tab-curl" aria-controls="snip-curl" data-codetab="curl" aria-selected="false" type="button">curl</button>
+          <button class="btn sm copy" type="button" data-copy="snip-ts" data-copy-code>Copy</button>
+        </div>
+        <pre role="tabpanel" aria-labelledby="tab-ts" data-codepane="ts" id="snip-ts" tabindex="0">import { Aran } from '@aran/sdk';
+
+const aran = new Aran({ apiKey: process.env.ARAN_APP_KEY!, baseUrl: process.env.ARAN_BASE_URL! });
+
+// on the server, before you write
+const tokens = await aran.protectFields({
+  fields: { name, mobile, aadhaar },
+  customerRef: 'CUS-000123', purpose: 'KYC', sink: 'kyc-archive',
+}); // throws if anything is left unprotected: store nothing
+await db.insert(customers).values({ customerRef: 'CUS-000123', ...tokens });</pre>
+        <pre role="tabpanel" aria-labelledby="tab-py" data-codepane="py" id="snip-py" tabindex="0" hidden>import os, requests
+
+r = requests.post(f"{os.environ['ARAN_BASE_URL']}/v1/protect", timeout=4,
+    headers={"X-API-Key": os.environ["ARAN_APP_KEY"]},
+    json={"text": f"Aadhaar {aadhaar}", "customer_ref": "CUS-000123",
+          "purpose": "KYC", "sink": "kyc-archive"})
+r.raise_for_status()           # fail closed: store nothing if this raises
+safe_text = r.json()["after"]  # tokens, not the original values</pre>
+        <pre role="tabpanel" aria-labelledby="tab-curl" data-codepane="curl" id="snip-curl" tabindex="0" hidden>curl -sS -X POST "$ARAN_BASE_URL/v1/protect" \
+  -H "X-API-Key: $ARAN_APP_KEY" -H 'Content-Type: application/json' \
+  -d '{"text":"Aadhaar 341777631706","customer_ref":"CUS-000123","purpose":"KYC","sink":"kyc-archive"}'</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- pricing -->
+  <section class="scene" id="pricing" aria-labelledby="pricing-h">
+    <div class="wrap">
+      <div class="scene-head">
+        <h2 id="pricing-h">Pricing.</h2>
+        <p>A preview. Plans are described here for planning; nothing is billed yet.</p>
+      </div>
+      <div class="grid cols-3">
+        <div class="card price"><h3>Free</h3><div class="amt">₹0</div><ul><li>10,000 protect calls a month</li><li>One workspace with its own isolated vault</li><li>Scoped API keys, audit log, receipts</li></ul><a class="btn" href="/signup">Get an API key</a></div>
+        <div class="card price featured"><h3>Team</h3><div class="amt">On request</div><ul><li>Higher limits and rate limits</li><li>Multiple workspaces</li><li>Priority support</li></ul><a class="btn primary" href="mailto:hello@aran.example?subject=Aran%20Team%20plan">Talk to us</a></div>
+        <div class="card price"><h3>Enterprise</h3><div class="amt">Custom</div><ul><li>Self-hosted deployment</li><li>Custom retention and key custody</li><li>Security review support</li></ul><a class="btn" href="mailto:hello@aran.example?subject=Aran%20Enterprise">Contact sales</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- honest limits -->
+  <section class="scene" aria-labelledby="limits-h">
+    <div class="wrap">
+      <div class="scene-head">
+        <h2 id="limits-h">Honest limits.</h2>
+        <p>Your application server sees the raw value briefly before calling Aran. Aran makes sure it is not stored or shared downstream in plaintext.</p>
+      </div>
+      <ul class="limits">
+        <li>Detection of identifiers with a checksum is reliable; detection of names is statistical and can miss one. Every response says which values were protected.</li>
+        <li>Names become one-way pseudonyms. They cannot be revealed later.</li>
+        <li>Erasure destroys the key for one customer and one purpose. Tokens issued under other purposes stay readable until you erase those too.</li>
+      </ul>
     </div>
   </section>
 </main>
 
 <footer class="footer">
-  <div class="wrap stack">
-    <h3 style="color:var(--text)">How Aran maps to common obligations</h3>
-    <div class="table-wrap"><table>
-      <thead><tr><th scope="col">Obligation</th><th scope="col">What Aran provides</th></tr></thead>
-      <tbody>
-        <tr><td>DPDP Act 2023: reasonable security safeguards</td><td>Identifiers are tokenised before storage; tokens are useless without the vault.</td></tr>
-        <tr><td>DPDP Act 2023: erasure on withdrawal of consent</td><td>Per-customer, per-purpose key destruction with a signed, independently verifiable receipt.</td></tr>
-        <tr><td>RBI guidance on data handling and audit</td><td>Scoped keys, a hash-chained reveal log, and per-destination tokens that show where a leak came from.</td></tr>
-      </tbody>
-    </table></div>
-    <p class="small">This is a technical mapping, not legal advice and not a certification. Aran Cloud is a preview.</p>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="/" aria-label="Aran home"><svg aria-hidden="true"><use href="#mark"/></svg>Aran</a>
+        <p class="small" style="margin-top:12px">Aran Cloud is a preview. Security contact: <a href="mailto:security@aran.example">security@aran.example</a></p>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Obligation</th><th scope="col">What Aran provides</th></tr></thead>
+        <tbody>
+          <tr><td>DPDP Act 2023: reasonable security safeguards</td><td>Identifiers are tokenised before storage; tokens are useless without the vault.</td></tr>
+          <tr><td>DPDP Act 2023: erasure on withdrawal of consent</td><td>Per-customer, per-purpose key destruction with a signed, independently verifiable receipt.</td></tr>
+          <tr><td>RBI guidance on data handling and audit</td><td>Scoped keys, a hash-chained reveal log, and per-destination tokens that show where a leak came from.</td></tr>
+          <tr><td>CERT-In directions on logs and incidents</td><td>Redacted logs and traceable tokens help you scope a leak. Aran is not a CERT-In empanelled service.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <p class="small">This is a technical mapping, not legal advice and not a certification.</p>
   </div>
 </footer>
 <script src="/static/js/console.js"></script>
 <script src="/static/js/landing.js"></script>
+<script src="/static/js/flip.js"></script>
 </body>
 </html>
