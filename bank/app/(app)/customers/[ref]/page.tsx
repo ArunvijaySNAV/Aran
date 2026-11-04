@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
-import { Badge, Banner, Card, CardTitle, Empty, Mono, Table, rupees, when } from "@/components/ui";
+import { Badge, Banner, Card, CardTitle, Empty, Table, rupees, when } from "@/components/ui";
 import { PageHead } from "@/components/PageHead";
+import { TokenChip } from "@/components/aran";
 import { getDb } from "@/db";
 import * as t from "@/db/schema";
 import { can, requireSession } from "@/lib/auth";
@@ -35,8 +36,8 @@ export default async function CustomerPage({ params, searchParams }: { params: P
         <CardTitle>Identifiers</CardTitle>
         <Table label="Identifiers" head={["Field", "Stored in this database", "Value"]}>
           {rows.map((r) => r.token ? (
-            <tr key={r.field}><td className="font-semibold">{r.label}</td><td><div className="mb-1"><Badge>{r.label} · protected</Badge></div><Mono>{r.token}</Mono></td>
-              <td>{r.field === "name" ? <span className="text-xs text-muted">One-way pseudonym: cannot be revealed</span> : canReveal ? <Reveal customerRef={ref} field={r.field} /> : <span className="text-xs text-muted">{s.role === "compliance_officer" ? "Erased" : "Only compliance officers can reveal"}</span>}</td></tr>
+            <tr key={r.field}><td className="font-semibold">{r.label}</td><td><div className="mb-1"><Badge tone="protected">{r.label} · protected</Badge></div><TokenChip>{r.token}</TokenChip></td>
+              <td>{r.field === "name" ? <span className="text-[14px] text-ink2">One-way pseudonym: cannot be revealed</span> : canReveal ? <Reveal customerRef={ref} field={r.field} /> : <span className="text-[14px] text-ink2">{s.role === "compliance_officer" ? "Erased" : "Only compliance officers can reveal"}</span>}</td></tr>
           ) : null)}
         </Table>
       </Card>
@@ -46,15 +47,15 @@ export default async function CustomerPage({ params, searchParams }: { params: P
             <Table label="Accounts" head={["Account", "Type", "Balance"]}>{accounts.map((a) => <tr key={a.id}><td><Link className="underline" href={`/accounts/${a.accountNo}`}>{a.accountNo}</Link></td><td>{a.type}</td><td className="tabular-nums">{rupees(a.balancePaise)}</td></tr>)}</Table>
           )}</Card>
         <Card><CardTitle>KYC cases</CardTitle>
-          {cases.length === 0 ? <Empty title="No cases" /> : cases.map((k) => (
-            <div key={k.id} className="mb-3 space-y-2"><div className="flex items-center gap-2"><Badge tone={k.status === "open" ? "warn" : k.status === "approved" ? "ok" : "bad"}>{k.status}</Badge><span className="text-xs text-muted">{when(k.createdAt)}</span></div>
-              {k.notes ? <p className="text-sm">{k.notes}</p> : null}
+          {cases.length === 0 ? <Empty title="No cases yet">KYC cases appear here once one is opened.</Empty> : cases.map((k) => (
+            <div key={k.id} className="mb-3 space-y-2"><div className="flex items-center gap-2"><Badge tone={k.status === "open" ? "warn" : k.status === "approved" ? "ok" : "bad"}>{k.status}</Badge><span className="text-[14px] text-ink2">{when(k.createdAt)}</span></div>
+              {k.notes ? <p className="text-[15px]">{k.notes}</p> : null}
               {k.status === "open" && can(s.role, "onboard") ? <KycDecision caseId={k.id} customerRef={ref} /> : null}</div>
           ))}</Card>
       </div>
       {s.role === "compliance_officer" || s.role === "admin" ? (
         <Card><CardTitle>Reveal history</CardTitle>
-          {reveals.length === 0 ? <Empty title="No reveals" /> : <Table label="Reveals" head={["When", "Field", "Reason (redacted)"]}>{reveals.map((r) => <tr key={r.id}><td className="whitespace-nowrap">{when(r.createdAt)}</td><td>{r.field}</td><td>{r.reason}</td></tr>)}</Table>}</Card>
+          {reveals.length === 0 ? <Empty title="No reveals yet">Each reveal is recorded here with its reason.</Empty> : <Table label="Reveals" head={["When", "Field", "Reason"]}>{reveals.map((r) => <tr key={r.id}><td className="whitespace-nowrap">{when(r.createdAt)}</td><td>{r.field}</td><td>{r.reason}</td></tr>)}</Table>}</Card>
       ) : null}
     </div>
   );

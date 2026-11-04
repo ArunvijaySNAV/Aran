@@ -27,11 +27,11 @@ export function Reveal({ customerRef, field }: { customerRef: string; field: "aa
   );
   if (!open) return <Button size="sm" type="button" onClick={() => setOpen(true)}>Reveal {LABEL[field]}</Button>;
   return (
-    <form action={action} className="w-full max-w-sm space-y-2 rounded-lg border border-line bg-surface2 p-3">
+    <form action={action} className="w-full max-w-sm space-y-2 rounded-[8px] border-[1.5px] border-rule bg-stock p-3">
       <input type="hidden" name="ref" value={customerRef} /><input type="hidden" name="field" value={field} />
       <Field label={`Why do you need the ${LABEL[field]}?`} htmlFor={`reason-${field}`} error={state.fieldErrors?.reason}><Textarea id={`reason-${field}`} name="reason" required minLength={10} aria-invalid={!!state.fieldErrors?.reason} /></Field>
       {state.message && !state.fieldErrors?.reason ? <Banner tone="bad" role="alert">{state.message}</Banner> : null}
-      <div className="flex gap-2"><Button size="sm" variant="primary" type="submit" disabled={pending}>{pending ? "Revealing…" : "Reveal"}</Button><Button size="sm" type="button" onClick={() => setOpen(false)}>Cancel</Button></div>
+      <div className="flex flex-wrap gap-2"><Button size="sm" variant="primary" type="submit" disabled={pending}>{pending ? "Revealing…" : "Reveal"}</Button><Button size="sm" type="button" onClick={() => setOpen(false)}>Cancel</Button></div>
     </form>
   );
 }

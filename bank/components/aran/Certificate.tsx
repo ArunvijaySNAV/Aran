@@ -19,7 +19,7 @@ export function Certificate({ title, rows, verified = false, stamped = true, chi
           </dl>
         </div>
         {stamped ? (
-          <svg viewBox="0 0 150 150" aria-hidden="true" className="h-[110px] w-[110px] -rotate-[8deg] text-seal sm:h-[150px] sm:w-[150px]" fill="none" stroke="currentColor">
+          <svg viewBox="0 0 150 150" aria-hidden="true" className="seal-slam h-[110px] w-[110px] -rotate-[8deg] text-seal sm:h-[150px] sm:w-[150px]" fill="none" stroke="currentColor">
             <circle cx="75" cy="75" r="70" strokeWidth="3" /><circle cx="75" cy="75" r="56" strokeWidth="1" strokeDasharray="2 4" />
             <path d="M48 77l19 19 36-40" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

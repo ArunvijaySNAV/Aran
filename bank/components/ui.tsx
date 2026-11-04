@@ -7,7 +7,7 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAt
 export const cn = (...a: ClassValue[]) => twMerge(clsx(a));
 
 // Buttons: 46px, radius 8, press = 1px down. Primary = bank green; secondary = 1.5px ink outline. Destructive is outlined, never red.
-const button = cva("inline-flex min-h-[46px] items-center justify-center gap-2 rounded-[8px] px-5 py-2 text-[16px] font-bold transition-[transform,background-color] duration-150 ease-[var(--ease)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45", {
+const button = cva("inline-flex min-h-[46px] whitespace-nowrap items-center justify-center gap-2 rounded-[8px] px-5 py-2 text-[16px] font-bold transition-[transform,background-color] duration-150 ease-[var(--ease)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45", {
   variants: {
     variant: {
       primary: "bg-bank text-white hover:bg-[#08463a]",
@@ -48,7 +48,7 @@ export function Field({ label, htmlFor, error, hint, children }: { label: string
 export const Card = ({ className, ...p }: React.HTMLAttributes<HTMLElement>) => <section className={cn("edge min-w-0 rounded-[14px] bg-bond p-5 sm:p-6", className)} {...p} />;
 export const CardTitle = ({ children }: { children: ReactNode }) => <h2 className="mb-3 text-[19px] font-bold leading-tight [font-stretch:100%]">{children}</h2>;
 
-const badge = { ok: "bg-sealsoft text-seal", warn: "bg-attentionsoft text-attention", bad: "bg-attentionsoft text-attention", neutral: "bg-stock text-ink2 shadow-[inset_0_0_0_1px_var(--rule)]", accent: "bg-banksoft text-bank" } as const;
+const badge = { ok: "bg-banksoft text-bank", warn: "bg-attentionsoft text-attention", bad: "bg-attentionsoft text-attention", neutral: "bg-stock text-ink2 shadow-[inset_0_0_0_1px_var(--rule)]", accent: "bg-banksoft text-bank", protected: "bg-sealsoft text-seal" } as const;
 export const Badge = ({ tone = "neutral", children }: { tone?: keyof typeof badge; children: ReactNode }) => (
   <span className={cn("inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-[13px] font-semibold", badge[tone])}>{children}</span>
 );

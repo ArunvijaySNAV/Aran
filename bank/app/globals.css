@@ -101,6 +101,7 @@ table { font-size: 15px; }
   .stack, .stack tbody, .stack tr, .stack td { display: block; }
   .stack tr { margin-bottom: 10px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--bond); padding: 6px 0; }
   .stack td { overflow-wrap: anywhere; display: grid; grid-template-columns: minmax(5.5rem, 7.5rem) minmax(0, 1fr); gap: 4px 12px; border: 0; padding: 6px 14px; }
+  .stack td > * { justify-self: start; }
   .stack td::before { color: var(--ink-2); font-size: 12px; font-weight: 600; font-stretch: 80%; padding-top: 2px; }
   .stack td:nth-child(1)::before { content: var(--h1, ""); } .stack td:nth-child(2)::before { content: var(--h2, ""); }
   .stack td:nth-child(3)::before { content: var(--h3, ""); } .stack td:nth-child(4)::before { content: var(--h4, ""); }
@@ -111,3 +112,22 @@ table { font-size: 15px; }
 
 /* the fixed bottom nav (phones) must not cover the footer when scrolled to the end */
 @media (max-width: 767.98px) { body:has(nav[aria-label="Main"]) > footer { padding-bottom: 5.5rem; } }
+
+/* Reveal result (components in customers/[ref]/Reveal.tsx): the raw value is a red chip with a 30 s bar that shrinks as it counts down. Red = a real raw value is on screen. */
+[role="status"].space-y-1 > .font-mono { display: inline-block; max-width: 100%; border-radius: 4px; background: var(--raw-bg); color: var(--raw); box-shadow: inset 0 0 0 1.5px var(--raw); padding: 3px 8px; font-size: 14px; font-weight: 500; word-break: break-all; }
+[role="status"].space-y-1 > .font-mono + div { font-size: 14px; color: var(--ink-2); }
+@media (prefers-reduced-motion: no-preference) {
+  [role="status"].space-y-1:has(> .font-mono)::after { content: ""; display: block; height: 6px; width: 220px; max-width: 100%; margin-top: 8px; border-radius: 999px; background: var(--raw); transform-origin: left; animation: reveal-bar 30s linear forwards; }
+}
+@keyframes reveal-bar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* Erase: tokens go unreadable one after another (240 ms apart, delay set inline); the certificate seal slams in. Reduced motion: final state, no animation. */
+.unread { display: inline-block; opacity: .55; filter: blur(.6px); }
+.unread code { text-decoration: line-through; }
+.seal-slam { opacity: .95; }
+@media (prefers-reduced-motion: no-preference) {
+  .unread { animation: unread .5s var(--ease) both; }
+  .seal-slam { animation: slam-in .55s var(--ease) both; }
+}
+@keyframes unread { from { opacity: 1; filter: none; } to { opacity: .55; filter: blur(.6px); } }
+@keyframes slam-in { from { opacity: 0; transform: scale(2.3) rotate(-8deg); } 60% { transform: scale(.94) rotate(-8deg); } to { opacity: .95; transform: scale(1) rotate(-8deg); } }
