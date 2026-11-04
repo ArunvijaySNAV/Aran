@@ -45,3 +45,15 @@ Dimensions scored on the two screens (customers list/detail with Reveal; complia
 | Implementation integrity | 3 | One selector-driven CSS rule styles Reveal's protected markup (gap 16). |
 Total 17/20 (good). Reduced motion: the blanket `animation-duration: .001ms` rule in `app/globals.css` is kept deliberately: every bank animation is one-shot and gated to `no-preference` with its end state as the static style, so nothing is lost. If the detector or a reviewer flags that rule, it is a documented exception, not a defect.
 Fixes applied from the audit: struck-chip contrast, placeholder contrast, 44 px cell links, Certificate type floor (13 px). No new detector exceptions.
+
+## Bank Screens 9–13: audit (impeccable audit, own step list)
+Evidence: critique-B agents (Screens 9, 10, 11 partial, 13; Screen 12 ran on my own measurements because the agent's login was blocked while Postgres had no free connection slots), `impeccable detect` (`[]` on all five), bank vitest 17/17, bank Playwright OK, plaintext scan PASS, no console errors and no horizontal scroll in every shot at 390 and 1440.
+| Screen | A11y | Perf | Theming | Responsive | Integrity | Total | Key finding |
+|---|---|---|---|---|---|---|---|
+| 9 Data plane | 3 | 3 | 4 | 3 | 3 | 16 | Scan result is now in an always-mounted live region; focus drops to body after Scan (handler, gap 20). Page is 33,000 px tall at 390 (14 tables as cards). Lowest contrast 5.8. |
+| 10 Support | 3 | 4 | 4 | 4 | 3 | 18 | One live region (the Night pane) instead of two; focus after Ask (gap 20). |
+| 11 Vendor | 3 | 4 | 4 | 4 | 3 | 18 | Result region always mounted; leaking sink pill red-outlined with the API's share. Static scan only (login was blocked for that agent). |
+| 12 Accounts | 3 | 4 | 4 | 4 | 3 | 18 | Numeric columns right-aligned from 640 px; debit rows are marked by sign only. |
+| 13 Portal | 3 | 4 | 4 | 4 | 2 | 17 | Field errors linked by aria-describedby (all forms); focus after validation lost (gap 23); registered-slip markup protected (gap 22). |
+Fixes applied from the audits: always-mounted live regions (Scan, Breach), aria-describedby from `Field`, numeric alignment, 44 px links in cells, dim "—" for empty cells. No new detector exceptions. The blanket reduced-motion rule from the Screen 7 and 8 audit still applies.
+Environment note: running several review agents against the dev server exhausted the local Postgres connection slots ("remaining connection slots are reserved"), which made staff sign-in return "Email or password is not right." for them and for my capture script. Restarting the dev server on 3000 released them; no data was changed.
