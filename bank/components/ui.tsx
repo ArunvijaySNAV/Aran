@@ -26,7 +26,7 @@ export function Button({ className, variant, size, ...p }: ButtonHTMLAttributes<
 export const linkButton = (v: VariantProps<typeof button> = {}, extra?: string) => cn(button(v), "no-underline", extra);
 
 // Inputs: 17px text, radius 8, 1.5px rule border on bond; focus = bank border + soft ring; error = attention (red is reserved for raw data)
-const field = "min-h-[46px] w-full rounded-[8px] border-[1.5px] border-rulestrong bg-bond px-3 py-2.5 text-[17px] text-ink placeholder:text-ink2 placeholder:opacity-80 focus:border-bank focus:outline focus:outline-[3px] focus:outline-banksoft aria-[invalid=true]:border-attention";
+const field = "min-h-[46px] w-full rounded-[8px] border-[1.5px] border-rulestrong bg-bond px-3 py-2.5 text-[17px] text-ink placeholder:text-ink2 placeholder:opacity-95 focus:border-bank focus:outline focus:outline-[3px] focus:outline-banksoft aria-[invalid=true]:border-attention";
 export const Input = ({ className, ...p }: InputHTMLAttributes<HTMLInputElement>) => <input className={cn(field, className)} {...p} />;
 export const Textarea = ({ className, ...p }: TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea className={cn(field, "min-h-28", className)} {...p} />;
 export const Select = ({ className, ...p }: SelectHTMLAttributes<HTMLSelectElement>) => <select className={cn(field, className)} {...p} />;

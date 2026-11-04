@@ -101,7 +101,7 @@ table { font-size: 15px; }
   .stack, .stack tbody, .stack tr, .stack td { display: block; }
   .stack tr { margin-bottom: 10px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--bond); padding: 6px 0; }
   .stack td { overflow-wrap: anywhere; display: grid; grid-template-columns: minmax(5.5rem, 7.5rem) minmax(0, 1fr); gap: 4px 12px; border: 0; padding: 6px 14px; }
-  .stack td > * { justify-self: start; }
+  .stack td > * { justify-self: start; max-width: 100%; min-width: 0; }
   .stack td::before { color: var(--ink-2); font-size: 12px; font-weight: 600; font-stretch: 80%; padding-top: 2px; }
   .stack td:nth-child(1)::before { content: var(--h1, ""); } .stack td:nth-child(2)::before { content: var(--h2, ""); }
   .stack td:nth-child(3)::before { content: var(--h3, ""); } .stack td:nth-child(4)::before { content: var(--h4, ""); }
@@ -122,12 +122,15 @@ table { font-size: 15px; }
 @keyframes reveal-bar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
 /* Erase: tokens go unreadable one after another (240 ms apart, delay set inline); the certificate seal slams in. Reduced motion: final state, no animation. */
-.unread { display: inline-block; opacity: .55; filter: blur(.6px); }
-.unread code { text-decoration: line-through; }
+.unread { position: relative; display: inline-block; }
+.unread::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--raw); transform-origin: left; }
 .seal-slam { opacity: .95; }
 @media (prefers-reduced-motion: no-preference) {
-  .unread { animation: unread .5s var(--ease) both; }
+  .unread::after { animation: strike .45s var(--ease) both; animation-delay: inherit; }
   .seal-slam { animation: slam-in .55s var(--ease) both; }
 }
-@keyframes unread { from { opacity: 1; filter: none; } to { opacity: .55; filter: blur(.6px); } }
+@keyframes strike { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes slam-in { from { opacity: 0; transform: scale(2.3) rotate(-8deg); } 60% { transform: scale(.94) rotate(-8deg); } to { opacity: .95; transform: scale(1) rotate(-8deg); } }
+
+/* links inside table cells are 44px targets */
+tbody td a { display: inline-flex; min-height: 44px; align-items: center; }
