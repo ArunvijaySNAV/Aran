@@ -21,11 +21,17 @@ ask() { # ask <label> <varname>: hidden read, nothing echoed
 ask "Supabase project URL (https://<ref>.supabase.co)" SB_URL
 [[ "$SB_URL" =~ ^https://${EXPECTED_REF}\.supabase\.co/?$ ]] || { echo "That is not the URL of project $EXPECTED_REF. Stopping." >&2; exit 1; }
 SB_URL="${SB_URL%/}"
-ask "Supabase anon (public) key" SB_ANON
-ask "Supabase service_role key" SB_SERVICE
+ask "Supabase publishable key (sb_publishable_...) or legacy anon key" SB_ANON
+good_key() { # good_key <value> <new-prefix>: new-format key or legacy JWT, long enough, plain ASCII (no "..." placeholders)
+  [[ "$1" =~ ^[A-Za-z0-9_.-]{30,}$ ]] && { [[ "$1" == "$2"* ]] || [[ "$1" == eyJ* ]]; }
+}
+good_key "$SB_ANON" sb_publishable_ || { echo "That does not look like a full publishable key (sb_publishable_..., at least 30 characters, no '...'). Copy the whole key. Stopping." >&2; exit 1; }
+ask "Supabase secret key (sb_secret_...) or legacy service_role key" SB_SERVICE
+good_key "$SB_SERVICE" sb_secret_ || { echo "That does not look like a full secret key (sb_secret_..., at least 30 characters, no '...'). Copy the whole key. Stopping." >&2; exit 1; }
 ask "DATABASE_URL, the POOLED connection string (Settings > Database > Connection pooling)" DB_URL
 [[ "$DB_URL" =~ ^postgres(ql)?:// ]] || { echo "DATABASE_URL must start with postgresql://. Stopping." >&2; exit 1; }
 case "$DB_URL" in *"$EXPECTED_REF"*) ;; *) echo "DATABASE_URL does not mention project $EXPECTED_REF. Stopping." >&2; exit 1;; esac
+case "$DB_URL" in *"@db.${EXPECTED_REF}.supabase.co"*) echo "Note: that is the DIRECT connection string (IPv6-only). Fine for seeding from this Mac if it connects; Vercel needs the pooled one." >&2;; esac
 case "$DB_URL" in *"[YOUR-PASSWORD]"*) echo "DATABASE_URL still contains the [YOUR-PASSWORD] placeholder. Stopping." >&2; exit 1;; esac
 ask "Staff password for the four hosted logins (12+ characters)" STAFF_PW
 [ "${#STAFF_PW}" -ge 12 ] || { echo "Use at least 12 characters. Stopping." >&2; exit 1; }
