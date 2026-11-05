@@ -33,10 +33,15 @@ ask "DATABASE_URL, the POOLED connection string (Settings > Database > Connectio
 case "$DB_URL" in *"$EXPECTED_REF"*) ;; *) echo "DATABASE_URL does not mention project $EXPECTED_REF. Stopping." >&2; exit 1;; esac
 case "$DB_URL" in *"@db.${EXPECTED_REF}.supabase.co"*) echo "Note: that is the DIRECT connection string (IPv6-only). Fine for seeding from this Mac if it connects; Vercel needs the pooled one." >&2;; esac
 case "$DB_URL" in *"[YOUR-PASSWORD]"*) echo "DATABASE_URL still contains the [YOUR-PASSWORD] placeholder. Stopping." >&2; exit 1;; esac
-ask "Staff password for the four hosted logins (12+ characters)" STAFF_PW
-[ "${#STAFF_PW}" -ge 12 ] || { echo "Use at least 12 characters. Stopping." >&2; exit 1; }
-ask "Type the staff password again" STAFF_PW2
-[ "$STAFF_PW" = "$STAFF_PW2" ] || { echo "The two passwords differ. Stopping." >&2; exit 1; }
+printf 'Staff password for the four hosted logins (12+ characters), or just press Enter to have one generated: ' >&2; IFS= read -rs STAFF_PW; printf '\n' >&2
+if [ -z "$STAFF_PW" ]; then
+  STAFF_PW="$(openssl rand -base64 24 | tr -d '/+=' | cut -c1-20)"; GENERATED=1
+  echo "Generated a 20-character staff password (not shown)." >&2
+else
+  [ "${#STAFF_PW}" -ge 12 ] || { echo "Use at least 12 characters. Stopping." >&2; exit 1; }
+  ask "Type the staff password again" STAFF_PW2
+  [ "$STAFF_PW" = "$STAFF_PW2" ] || { echo "The two passwords differ. Stopping." >&2; exit 1; }
+fi
 
 get() { grep -E "^$1=" "$KEYS" | head -1 | cut -d= -f2-; }
 APP_KEY="$(get ARAN_APP_KEY)"; COMP_KEY="$(get ARAN_COMPLIANCE_KEY)"
@@ -57,3 +62,4 @@ umask 077
 } > "$OUT"
 chmod 600 "$OUT"
 echo "Wrote $OUT (mode 600, $(wc -l < "$OUT" | tr -d ' ') variables). No value was printed."
+[ "${GENERATED:-}" = 1 ] && echo "To copy the staff password to your clipboard (then save it in your password manager):  grep ^SEED_STAFF_PASSWORD= \"$OUT\" | cut -d= -f2- | tr -d '\\n' | pbcopy"
