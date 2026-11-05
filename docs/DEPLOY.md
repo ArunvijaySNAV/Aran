@@ -4,11 +4,12 @@ Nothing here has been run against production. These are the exact steps.
 
 ## Supabase
 1. Create a project (region closest to Vercel `bom1`, i.e. Mumbai/`ap-south-1`).
-2. Copy the **direct** connection string (Settings > Database > Connection string, "Direct", port 5432) as `DATABASE_URL`, plus the project URL, anon key and service-role key.
+2. Copy the **pooled** connection string (Connect > pooler, transaction mode, port 6543; the direct string is IPv6-only and failed from an IPv4 machine) as `DATABASE_URL`, plus the project URL, anon key and service-role key.
 3. Run the migrations and seed from your machine:
 ```bash
 cd bank && DATABASE_URL='postgresql://postgres:…@db.<ref>.supabase.co:5432/postgres' npx tsx scripts/migrate.ts
 ```
+Or, with the project linked (`cd bank && supabase link --project-ref <ref>`), `cd bank && supabase db push`, which applies the timestamped copies in `bank/supabase/migrations/` (keep them in step with `bank/db/migrations/`; do not run both against the same database).
 4. Provision Aran keys and seed (after Aran is reachable, see below):
 ```bash
 ARAN_BASE_URL=https://<your-tunnel> python3 scripts/provision_bank_keys.py   # writes bank/.env.local

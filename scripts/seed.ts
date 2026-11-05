@@ -19,7 +19,8 @@ const rd = (n: number, f = 0) => Array.from({ length: n }, (_, i) => (i === 0 &&
 const verh = (b: number[]) => { let c = 0; [...b].reverse().forEach((d, i) => { c = Dt[c]![Pt[(i + 1) % 8]![d]!]!; }); return [0,4,3,2,1,5,6,7,8,9][c]!; };
 const LET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; const L1 = () => LET[Math.floor(Math.random() * 26)]!;
 export const genAadhaar = () => { const a = rd(11, 2); return [...a, verh(a)].join(""); };
-export const genMobile = () => `${6 + Math.floor(Math.random() * 4)}${rd(9).join("")}`;
+// never starts with "91": the bank validator strips a leading 91 (country code) before checking
+export const genMobile = (): string => { const m = `${6 + Math.floor(Math.random() * 4)}${rd(9).join("")}`; return m.startsWith("91") ? genMobile() : m; };
 export const genPan = () => `${L1()}${L1()}${L1()}P${L1()}${rd(4).join("")}${L1()}`;
 
 const STAFF = [
